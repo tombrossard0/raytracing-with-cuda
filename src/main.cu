@@ -19,15 +19,16 @@ struct SceneParams {
 // ---------- Utility functions ----------
 
 void savePPM(const std::string &filename, Vec3 *fb, int width, int height) {
-    std::ofstream ofs(filename);
-    ofs << "P3\n" << width << " " << height << "\n255\n";
+    std::ofstream ofs(filename, std::ios::binary);
+    ofs << "P6\n" << width << " " << height << "\n255\n";
     for (int i = 0; i < width * height; i++) {
-        int r = static_cast<int>(255.99 * fb[i].x);
-        int g = static_cast<int>(255.99 * fb[i].y);
-        int b = static_cast<int>(255.99 * fb[i].z);
-        ofs << r << " " << g << " " << b << "\n";
+        unsigned char r = static_cast<unsigned char>(255.99f * fb[i].x);
+        unsigned char g = static_cast<unsigned char>(255.99f * fb[i].y);
+        unsigned char b = static_cast<unsigned char>(255.99f * fb[i].z);
+        ofs.write(reinterpret_cast<char*>(&r), 1);
+        ofs.write(reinterpret_cast<char*>(&g), 1);
+        ofs.write(reinterpret_cast<char*>(&b), 1);
     }
-    ofs.close();
 }
 
 Camera makeCamera(const Vec3 &center, float radius, float angleDeg, int width, int height) {
@@ -66,10 +67,11 @@ public:
         cudaMallocManaged(&fb, fb_size);
 
         // Allocate spheres
-        nSpheres = 2;
+        nSpheres = 3;
         cudaMallocManaged(&spheres, nSpheres * sizeof(Sphere));
         spheres[0] = Sphere(center + Vec3(0.5f, 0, 0), .5f, Vec3(1, 0, 0));
         spheres[1] = Sphere(center + Vec3(0, 1, -0.5), .3f, Vec3(0, 1, 0));
+        spheres[2] = Sphere(center + Vec3(0.3, -1, -0.5), .4f, Vec3(0, 0, 1));
     }
 
     ~Scene() {
