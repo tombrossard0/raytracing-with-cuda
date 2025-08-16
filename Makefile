@@ -20,7 +20,7 @@ run: all
 	convert $(OUTPUT_NAME).ppm $(OUTPUT_NAME).png
 
 run-video: all
-	./raytracer
+	./raytracer --video
 	convert -delay 5 -loop 0 frame_*.ppm camera_rotation.gif
 
 clean:
