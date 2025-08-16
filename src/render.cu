@@ -11,18 +11,11 @@ __device__ void computeCameraBasis(const Camera &cam, Vec3 &right, Vec3 &up) {
     up = right.cross(cam.forward).normalize();
 }
 
-// __device__ Vec3 mul(const Mat4x4 &mat, const Vec4 &v) {
-//     float x = mat.m[0][0] * v.x + mat.m[0][1] * v.y + mat.m[0][2] * v.z + mat.m[0][3] * v.m;
-//     float y = mat.m[1][0] * v.x + mat.m[1][1] * v.y + mat.m[1][2] * v.z + mat.m[1][3] * v.m;
-//     float z = mat.m[2][0] * v.x + mat.m[2][1] * v.y + mat.m[2][2] * v.z + mat.m[2][3] * v.m;
-//     return Vec3(x, y, z);
-// }
-
 __device__ HitInfo calculateRayCollision(Ray ray, int nSphere, const Sphere* spheres) {
     HitInfo closestHit{};
 
     for (int i = 0; i < nSphere; i++) {
-        Sphere sphere = spheres[i];
+        const Sphere &sphere = spheres[i];
         HitInfo hitInfo = sphere.intersect(ray);
 
         if (hitInfo.didHit && hitInfo.dst < closestHit.dst || hitInfo.didHit && !closestHit.didHit) {
