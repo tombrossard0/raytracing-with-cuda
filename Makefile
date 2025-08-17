@@ -58,4 +58,4 @@ run-video: all
 
 # Clean
 clean:
-	rm -f $(TARGET) $(OUTPUT_NAME).* frame_* *.o **/*.o
+	rm -f $(TARGET) $(OUTPUT_NAME).* frame_* *.o **/*.o imgui.ini

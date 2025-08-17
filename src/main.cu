@@ -3,6 +3,7 @@
 #include <fstream>
 #include <sstream>
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_opengl.h>
 
 #include "vec3.h"
 #include "sphere.h"
@@ -97,9 +98,12 @@ public:
             return 1;
         }
 
-        SDL_Window* window = SDL_CreateWindow("CUDA Raytracer",
-        SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-        width, height, SDL_WINDOW_SHOWN);
+        SDL_Window* window = SDL_CreateWindow(
+            "CUDA Raytracer",
+            SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+            width, height,
+            SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE
+        );
 
         if (!window) {
             std::cerr << "Failed to create SDL window: " << SDL_GetError() << std::endl;
@@ -107,21 +111,34 @@ public:
             return 1;
         }
 
-        SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-        SDL_Texture* texture = SDL_CreateTexture(renderer,
-            SDL_PIXELFORMAT_RGB24, SDL_TEXTUREACCESS_STREAMING, width, height);
+        SDL_GLContext gl_context = SDL_GL_CreateContext(window);
+        SDL_GL_MakeCurrent(window, gl_context);
+        SDL_GL_SetSwapInterval(1); // vsync
 
-        Scene scene(width, height);
+        // --- OpenGL texture for CUDA framebuffer ---
+        GLuint tex;
+        glGenTextures(1, &tex);
+        glBindTexture(GL_TEXTURE_2D, tex);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, width, height, 0, GL_RGB, GL_FLOAT, nullptr);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glBindTexture(GL_TEXTURE_2D, 0);
+
+        // --- Init ImGui ---
+        IMGUI_CHECKVERSION();
+        ImGui::CreateContext();
+        ImGuiIO& io = ImGui::GetIO(); (void)io;
+        ImGui::StyleColorsDark();
+        ImGui_ImplSDL2_InitForOpenGL(window, gl_context);
+        ImGui_ImplOpenGL3_Init("#version 330");
 
         bool running = true;
         SDL_Event event;
 
-        // --- Mouse look variables ---
         bool mouseLook = false;
         int lastMouseX = 0, lastMouseY = 0;
-        float sensitivity = 0.2f; // adjust rotation speed
+        float sensitivity = 0.2f;
 
-        // FPS tracking
         Uint32 lastTime = SDL_GetTicks();
         int frameCount = 0;
         float fps = 0.0f;
@@ -129,88 +146,94 @@ public:
         while (running) {
             // --- Input ---
             while (SDL_PollEvent(&event)) {
+                ImGui_ImplSDL2_ProcessEvent(&event);
                 if (event.type == SDL_QUIT) running = false;
-                if (event.type == SDL_MOUSEBUTTONDOWN) {
-                    if (event.button.button == SDL_BUTTON_LEFT) {
-                        mouseLook = true;
-                        SDL_GetMouseState(&lastMouseX, &lastMouseY);
-                        SDL_SetRelativeMouseMode(SDL_TRUE); // hide cursor and capture mouse
-                    }
+
+                if (event.type == SDL_MOUSEBUTTONDOWN && event.button.button == SDL_BUTTON_RIGHT) {
+                    mouseLook = true;
+                    SDL_GetMouseState(&lastMouseX, &lastMouseY);
+                    SDL_SetRelativeMouseMode(SDL_TRUE);
                 }
-                if (event.type == SDL_MOUSEBUTTONUP) {
-                    if (event.button.button == SDL_BUTTON_LEFT) {
-                        mouseLook = false;
-                        SDL_SetRelativeMouseMode(SDL_FALSE); // release cursor
-                    }
+                if (event.type == SDL_MOUSEBUTTONUP && event.button.button == SDL_BUTTON_RIGHT) {
+                    mouseLook = false;
+                    SDL_SetRelativeMouseMode(SDL_FALSE);
                 }
                 if (event.type == SDL_MOUSEMOTION && mouseLook) {
-                    int dx = event.motion.xrel; // relative motion
+                    int dx = event.motion.xrel;
                     int dy = -event.motion.yrel;
-
-                    // update angles
-                    scene.yawDeg += dx * sensitivity;    // horizontal rotation
-                    scene.pitchDeg += dy * sensitivity;  // vertical rotation
-
-                    if (scene.pitchDeg > 89.0f) scene.pitchDeg = 89.0f;
-                    if (scene.pitchDeg < -89.0f) scene.pitchDeg = -89.0f;
+                    yawDeg += dx * sensitivity;
+                    pitchDeg += dy * sensitivity;
+                    if (pitchDeg > 89.0f) pitchDeg = 89.0f;
+                    if (pitchDeg < -89.0f) pitchDeg = -89.0f;
                 }
                 if (event.type == SDL_MOUSEWHEEL) {
-                    scene.radius -= event.wheel.y * 0.5f; // zoom factor
-                    if (scene.radius < scene.minRadius) scene.radius = scene.minRadius;
-                    if (scene.radius > scene.maxRadius) scene.radius = scene.maxRadius;
+                    radius -= event.wheel.y * 0.5f;
+                    if (radius < minRadius) radius = minRadius;
+                    if (radius > maxRadius) radius = maxRadius;
                 }
-                if (event.type == SDL_KEYDOWN) {
-                    if (event.key.keysym.sym == SDLK_ESCAPE) running = false;
-                }
-            }
-
-            // --- Render with CUDA ---
-            scene.renderFrame();
-
-            // --- Copy CUDA framebuffer to SDL texture ---
-            void* pixels;
-            int pitch;
-            SDL_LockTexture(texture, nullptr, &pixels, &pitch);
-
-            unsigned char* dst = (unsigned char*)pixels;
-            for (int y = 0; y < height; y++) {
-                unsigned char* row = dst + y * pitch;
-                for (int x = 0; x < width; x++) {
-                    Vec3 color = scene.fb[y * width + x];
-                    row[x*3 + 0] = static_cast<unsigned char>(255.99f * fminf(color.x, 1.0f));
-                    row[x*3 + 1] = static_cast<unsigned char>(255.99f * fminf(color.y, 1.0f));
-                    row[x*3 + 2] = static_cast<unsigned char>(255.99f * fminf(color.z, 1.0f));
+                if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_ESCAPE) {
+                    running = false;
                 }
             }
 
-            SDL_UnlockTexture(texture);
+            // --- CUDA render ---
+            renderFrame();
 
-            // --- Present ---
-            SDL_RenderClear(renderer);
-            SDL_RenderCopy(renderer, texture, nullptr, nullptr);
-            SDL_RenderPresent(renderer);
+            // --- Upload framebuffer to OpenGL texture ---
+            glBindTexture(GL_TEXTURE_2D, tex);
+            glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RGB, GL_FLOAT, fb);
+            glBindTexture(GL_TEXTURE_2D, 0);
 
-            // --- FPS calculation ---
+            // --- Clear screen ---
+            glClearColor(0, 0, 0, 1);
+            glClear(GL_COLOR_BUFFER_BIT);
+
+            // --- ImGui frame ---
+            ImGui_ImplSDL2_NewFrame();
+            ImGui_ImplOpenGL3_NewFrame();
+            ImGui::NewFrame();
+
+            ImGui::Begin("Render Window");
+            ImGui::Image((void*)(intptr_t)tex, ImVec2(width, height));
+            ImGui::End();
+
+            ImGui::Begin("Camera Controls");
+            ImGui::SliderFloat("Radius", &radius, minRadius, maxRadius);
+            ImGui::SliderFloat("Yaw", &yawDeg, -180.0f, 180.0f);
+            ImGui::SliderFloat("Pitch", &pitchDeg, -89.0f, 89.0f);
+            ImGui::End();
+
+            ImGui::Render();
+            ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+            SDL_GL_SwapWindow(window);
+
+            // --- FPS ---
             frameCount++;
             Uint32 currentTime = SDL_GetTicks();
             Uint32 elapsed = currentTime - lastTime;
-            if (elapsed >= 1000) { // update every second
+            if (elapsed >= 1000) {
                 fps = frameCount * 1000.0f / elapsed;
                 frameCount = 0;
                 lastTime = currentTime;
-
                 std::string title = "CUDA Raytracer - FPS: " + std::to_string((int)fps);
                 SDL_SetWindowTitle(window, title.c_str());
             }
         }
 
-        SDL_DestroyTexture(texture);
-        SDL_DestroyRenderer(renderer);
+        // --- Cleanup ---
+        ImGui_ImplOpenGL3_Shutdown();
+        ImGui_ImplSDL2_Shutdown();
+        ImGui::DestroyContext();
+
+        glDeleteTextures(1, &tex);
+        SDL_GL_DeleteContext(gl_context);
         SDL_DestroyWindow(window);
         SDL_Quit();
 
         return 0;
     }
+
 
     void renderPPMFrame(float angleDeg, const std::string &filename) {
         this->angleDeg = angleDeg;
