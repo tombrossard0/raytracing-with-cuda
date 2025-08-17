@@ -58,6 +58,10 @@ __device__ Vec3 randomHemisphereDirection(Vec3 normal, unsigned int &seed) {
     return dir * sinf(normal.dot(dir));
 }
 
+__device__ Vec3 getEnvironmentLight(Ray ray) {
+    return Vec3(0, 0, 0.5f);
+}
+
 __device__ Vec3 trace(Ray ray, unsigned int &seed, const Sphere *spheres, int nSpheres) {
     Vec3 incomingLight = Vec3(0, 0, 0);
     Vec3 rayColour = Vec3(1, 1, 1);
@@ -73,6 +77,7 @@ __device__ Vec3 trace(Ray ray, unsigned int &seed, const Sphere *spheres, int nS
             incomingLight = incomingLight + emittedLight * rayColour;
             rayColour = rayColour * material.colour;
         } else {
+            incomingLight = incomingLight + getEnvironmentLight(ray) * rayColour;
             break;
         }
     }

@@ -20,12 +20,18 @@ void render(Vec3 *fb, int width, int height, Sphere *sphere, int nSpheres, Camer
 // ---------- Utility functions ----------
 
 void savePPM(const std::string &filename, Vec3 *fb, int width, int height) {
+    auto toByte = [](float x) {
+        // gamma correction
+        return static_cast<unsigned char>(255 * powf(fminf(fmaxf(x, 0.0f), 1.0f), 1.0f/2.2f));
+    };
+
     std::ofstream ofs(filename, std::ios::binary);
     ofs << "P6\n" << width << " " << height << "\n255\n";
     for (int i = 0; i < width * height; i++) {
-        unsigned char r = static_cast<unsigned char>(255.99f * fb[i].x);
-        unsigned char g = static_cast<unsigned char>(255.99f * fb[i].y);
-        unsigned char b = static_cast<unsigned char>(255.99f * fb[i].z);
+        unsigned char r = toByte(fb[i].x);
+        unsigned char g = toByte(fb[i].y);
+        unsigned char b = toByte(fb[i].z);
+
         ofs.write(reinterpret_cast<char*>(&r), 1);
         ofs.write(reinterpret_cast<char*>(&g), 1);
         ofs.write(reinterpret_cast<char*>(&b), 1);
@@ -56,7 +62,7 @@ public:
 
         cudaMallocManaged(&spheres, MAX_SPHERES * sizeof(Sphere));
         nSpheres = 4;
-        spheres[0] = Sphere(center + Vec3(-4.418, -5.648, -3), 5, Vec3(1, 0, 0));
+        spheres[0] = Sphere(center + Vec3(-4.418, -5.648, -3), 5, Vec3(1, 1, 1));
         spheres[0].material.emissionColour = Vec3(1, 1, 1);
         spheres[0].material.emissionStrength = 1;
 
@@ -274,25 +280,23 @@ public:
         return 0;
     }
 
-
-    void renderPPMFrame(float angleDeg, const std::string &filename) {
-        this->angleDeg = angleDeg;
+    void renderPPMFrame(const std::string &filename) {
         Camera cam = makeCamera();
         render(fb, width, height, spheres, nSpheres, &cam);
         savePPM(filename, fb, width, height);
     }
 
     void renderPPM(const std::string &filename = "output.ppm") {
-        renderPPMFrame(0.0f, filename);
+        renderPPMFrame(filename);
         std::cout << "Static render saved to " << filename << std::endl;
     }
 
     void renderGIF(int nFrames, float totalAngle) {
         for (int i = 0; i < nFrames; i++) {
-            float angle = (totalAngle / nFrames) * i;
+            yawDeg = (totalAngle / nFrames) * i;
             std::ostringstream filename;
             filename << "frame_" << std::setw(3) << std::setfill('0') << i << ".ppm";
-            renderPPMFrame(angle, filename.str());
+            renderPPMFrame(filename.str());
             std::cout << "Saved " << filename.str() << std::endl;
         }
         std::cout << "Video render complete!" << std::endl;
