@@ -51,6 +51,8 @@
         "typeinfo": "cpp",
         "clocale": "cpp",
         "fstream": "cpp",
-        "__nullptr": "cpp"
+        "__nullptr": "cpp",
+        "ios": "cpp",
+        "filesystem": "cpp"
     }
 }

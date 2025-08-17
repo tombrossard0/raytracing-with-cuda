@@ -11,7 +11,8 @@ CXXFLAGS = -O2 -g -Wall -Wextra -Wpedantic -Werror -I/usr/include/SDL2 -Iimgui -
 LDFLAGS = -lstdc++ -lm -lSDL2 -lGL
 
 # Sources
-SRC = $(wildcard src/*.cu)
+SRC_CU   = $(wildcard src/*.cu)
+SRC_CPP  = $(wildcard src/*.cpp)
 IMGUI_SRC = \
     imgui/imgui.cpp \
     imgui/imgui_demo.cpp \
@@ -22,7 +23,8 @@ IMGUI_SRC = \
     imgui/backends/imgui_impl_opengl3.cpp
 
 # Object files
-OBJ = $(SRC:.cu=.o)
+OBJ_CU   = $(SRC_CU:.cu=.o)
+OBJ_CPP  = $(SRC_CPP:.cpp=.o)
 IMGUI_OBJ = $(IMGUI_SRC:.cpp=.o)
 
 # Target
@@ -41,7 +43,7 @@ all: $(TARGET)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 # Link all objects
-$(TARGET): $(OBJ) $(IMGUI_OBJ)
+$(TARGET): $(OBJ_CU) $(OBJ_CPP) $(IMGUI_OBJ)
 	$(NVCC) -ccbin $(CCBIN) $^ -o $@ $(LDFLAGS)
 
 # Run targets
@@ -58,4 +60,4 @@ run-video: all
 
 # Clean
 clean:
-	rm -f $(TARGET) $(OUTPUT_NAME).* frame_* *.o **/*.o imgui.ini
+	rm -f $(TARGET) $(OUTPUT_NAME).* frame_* *.o **/*.o
