@@ -40,4 +40,3 @@ BraceWrapping:
 
 # Other tweaks
 SpacesInParentheses: false
-AlignEscapedNewlines: Right

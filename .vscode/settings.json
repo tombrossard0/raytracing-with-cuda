@@ -53,6 +53,10 @@
         "fstream": "cpp",
         "__nullptr": "cpp",
         "ios": "cpp",
-        "filesystem": "cpp"
-    }
+        "filesystem": "cpp",
+        "*.cu": "cpp",
+        "*.cuh": "cpp"
+    },
+    "clang-format.assumeFilename": ".clang-format",
+    "editor.formatOnSave": true,
 }
