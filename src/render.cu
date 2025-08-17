@@ -1,17 +1,17 @@
+#include "mat4x4.h"
 #include "vec3.h"
 #include "vec4.h"
-#include "mat4x4.h"
 
+#include "camera.h"
 #include "ray.h"
 #include "sphere.h"
-#include "camera.h"
 
 __device__ void computeCameraBasis(const Camera &cam, Vec3 &right, Vec3 &up) {
     right = cam.forward.cross(cam.up).normalize();
     up = right.cross(cam.forward).normalize();
 }
 
-__device__ HitInfo calculateRayCollision(Ray ray, int nSphere, const Sphere* spheres) {
+__device__ HitInfo calculateRayCollision(Ray ray, int nSphere, const Sphere *spheres) {
     HitInfo closestHit{};
 
     for (int i = 0; i < nSphere; i++) {
@@ -30,7 +30,7 @@ __device__ Ray generateRay(float u, float v, const Camera &cam) {
     Vec3 right, up;
     computeCameraBasis(cam, right, up);
 
-    float scale = tanf(cam.fov * 0.5f * M_PI/180.0f);
+    float scale = tanf(cam.fov * 0.5f * M_PI / 180.0f);
     Vec3 dir = (cam.forward + right * (u * cam.aspect * scale) + up * (v * scale)).normalize();
     return Ray(cam.position, dir);
 }
@@ -85,11 +85,12 @@ __device__ Vec3 trace(Ray ray, unsigned int &seed, const Sphere *spheres, int nS
     return incomingLight;
 }
 
-__device__ void render_scene(unsigned int seed, Vec3 *fb_idx, Vec3 coords, Vec3 aspect, const Camera &cam, const Sphere *spheres, int nSpheres) {
+__device__ void render_scene(unsigned int seed, Vec3 *fb_idx, Vec3 coords, Vec3 aspect, const Camera &cam,
+                             const Sphere *spheres, int nSpheres) {
     // Normalize and centerize coordinates between [-0.5, 0.5]
     float u = (coords.x - aspect.x / 2.0f) / aspect.x;
     float v = (coords.y - aspect.y / 2.0f) / aspect.y;
-    
+
     // Generate a ray from the camera through pixel (u,v)
     Ray ray = generateRay(u, v, cam);
 
@@ -105,7 +106,8 @@ __device__ void render_scene(unsigned int seed, Vec3 *fb_idx, Vec3 coords, Vec3 
     // HitInfo closesHit = calculateRayCollision(ray, nSpheres, spheres);
     // if (closesHit.didHit) {
     //     // *fb_idx = randomHemisphereDirection(closesHit.normal, &seed);
-    //     *fb_idx = Vec3(closesHit.material.colour.x, closesHit.material.colour.y, closesHit.material.colour.z);
+    //     *fb_idx = Vec3(closesHit.material.colour.x, closesHit.material.colour.y,
+    //     closesHit.material.colour.z);
     // } else {
     //     // Map direction [-1,1] to [0,1] for visualization
     //     *fb_idx = Vec3(

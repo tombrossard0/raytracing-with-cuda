@@ -1,8 +1,8 @@
 #pragma once
 
-#include "vec3.h"
-#include "sphere.h"
 #include "camera.h"
+#include "sphere.h"
+#include "vec3.h"
 
 const int MAX_SPHERES = 64;
 
