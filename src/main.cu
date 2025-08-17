@@ -150,6 +150,31 @@ public:
         ImGui::End();
     }
 
+    void processKeyboard(const Uint8* keystate, float deltaTime) {
+        float speed = 10.5f * deltaTime; // movement speed
+        float yawRad = yawDeg * M_PI / 180.0f;
+        float pitchRad = pitchDeg * M_PI / 180.0f;
+
+        // Forward vector
+        Vec3 forward(cosf(pitchRad) * cosf(yawRad),
+                    sinf(pitchRad),
+                    cosf(pitchRad) * sinf(yawRad));
+        forward = forward.normalize();
+
+        // Right vector
+        Vec3 right = forward.cross(Vec3(0,1,0)).normalize();
+
+        // Up vector
+        Vec3 up = right.cross(forward).normalize();
+
+        if (keystate[SDL_SCANCODE_W]) center = center - forward * speed;   // forward
+        if (keystate[SDL_SCANCODE_S]) center = center + forward * speed;   // backward
+        if (keystate[SDL_SCANCODE_A]) center = center + right * speed;     // left
+        if (keystate[SDL_SCANCODE_D]) center = center - right * speed;     // right
+        if (keystate[SDL_SCANCODE_SPACE]) center = center - up * speed;    // up
+        if (keystate[SDL_SCANCODE_LCTRL]) center = center + up * speed;    // down
+    }
+
     int renderSDL2() {
         if (SDL_Init(SDL_INIT_VIDEO) < 0) {
             std::cerr << "Failed to init SDL: " << SDL_GetError() << std::endl;
@@ -197,7 +222,8 @@ public:
         int lastMouseX = 0, lastMouseY = 0;
         float sensitivity = 0.2f;
 
-        Uint32 lastTime = SDL_GetTicks();
+        Uint32 lastFrameTime = SDL_GetTicks();
+        Uint32 lastFPSTime = lastFrameTime;
         int frameCount = 0;
         float fps = 0.0f;
 
@@ -234,6 +260,15 @@ public:
                 }
             }
 
+            // --- Timing ---
+            Uint32 currentTime = SDL_GetTicks();
+            float deltaTime = (currentTime - lastFrameTime) / 1000.0f; // seconds
+            lastFrameTime = currentTime;
+
+            // --- Input ---
+            const Uint8* keystate = SDL_GetKeyboardState(NULL);
+            processKeyboard(keystate, deltaTime);
+
             // --- CUDA render ---
             renderFrame();
 
@@ -256,12 +291,11 @@ public:
 
             // --- FPS ---
             frameCount++;
-            Uint32 currentTime = SDL_GetTicks();
-            Uint32 elapsed = currentTime - lastTime;
-            if (elapsed >= 1000) {
-                fps = frameCount * 1000.0f / elapsed;
+            if (currentTime - lastFPSTime >= 1000) { // every 1 second
+                fps = frameCount * 1000.0f / (currentTime - lastFPSTime);
                 frameCount = 0;
-                lastTime = currentTime;
+                lastFPSTime = currentTime;
+
                 std::string title = "CUDA Raytracer - FPS: " + std::to_string((int)fps);
                 SDL_SetWindowTitle(window, title.c_str());
             }
