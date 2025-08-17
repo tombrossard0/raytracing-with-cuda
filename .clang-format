@@ -1,0 +1,42 @@
+# .clang-format
+BasedOnStyle: LLVM
+Language: Cpp
+
+# Indentation
+IndentWidth: 4
+TabWidth: 4
+UseTab: Never
+IndentPPDirectives: BeforeHash
+
+# Column limit
+ColumnLimit: 130
+
+AllowShortFunctionsOnASingleLine: InlineOnly
+AllowShortBlocksOnASingleLine: true
+AllowShortIfStatementsOnASingleLine: true
+AllowShortLoopsOnASingleLine: true
+
+# Spaces
+SpaceBeforeParens: ControlStatements
+Cpp11BracedListStyle: true
+
+# Breaks
+BreakBeforeBraces: Attach
+BraceWrapping:
+  AfterEnum: false
+  AfterClass: false
+  AfterControlStatement: false
+  AfterFunction: false
+  AfterNamespace: false
+  AfterStruct: false
+  AfterUnion: false
+  AfterExternBlock: false
+  BeforeCatch: false
+  BeforeElse: false
+  IndentBraces: false
+  SplitEmptyFunction: false
+  SplitEmptyRecord: false
+  SplitEmptyNamespace: false
+
+# Other tweaks
+SpacesInParentheses: false
