@@ -92,6 +92,28 @@ public:
         render(fb, width, height, spheres, nSpheres, &cam);
     }
 
+    void renderGUI(GLuint &tex) {
+        ImGui_ImplSDL2_NewFrame();
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui::NewFrame();
+
+        ImGui::Begin("Render Window");
+        ImGui::Image((void*)(intptr_t)tex, ImVec2(width, height));
+        ImGui::End();
+
+        ImGui::Begin("Camera Controls");
+        ImGui::SliderFloat("Radius", &radius, minRadius, maxRadius);
+        ImGui::SliderFloat("Yaw", &yawDeg, -180.0f, 180.0f);
+        ImGui::SliderFloat("Pitch", &pitchDeg, -89.0f, 89.0f);
+        ImGui::End();
+
+        ImGui::Begin("Screenshots");
+        if (ImGui::Button("save PPM")) {
+            renderPPM();
+        }
+        ImGui::End();
+    }
+
     int renderSDL2() {
         if (SDL_Init(SDL_INIT_VIDEO) < 0) {
             std::cerr << "Failed to init SDL: " << SDL_GetError() << std::endl;
@@ -189,19 +211,7 @@ public:
             glClear(GL_COLOR_BUFFER_BIT);
 
             // --- ImGui frame ---
-            ImGui_ImplSDL2_NewFrame();
-            ImGui_ImplOpenGL3_NewFrame();
-            ImGui::NewFrame();
-
-            ImGui::Begin("Render Window");
-            ImGui::Image((void*)(intptr_t)tex, ImVec2(width, height));
-            ImGui::End();
-
-            ImGui::Begin("Camera Controls");
-            ImGui::SliderFloat("Radius", &radius, minRadius, maxRadius);
-            ImGui::SliderFloat("Yaw", &yawDeg, -180.0f, 180.0f);
-            ImGui::SliderFloat("Pitch", &pitchDeg, -89.0f, 89.0f);
-            ImGui::End();
+            renderGUI(tex);
 
             ImGui::Render();
             ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
