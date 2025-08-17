@@ -1,5 +1,9 @@
 #pragma once
 
+#ifndef __CUDACC__
+    #define __device__
+#endif
+
 struct Mat4x4 {
     float m[4][4];
 };
