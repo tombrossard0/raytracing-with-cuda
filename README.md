@@ -1,5 +1,7 @@
 # Raytracer with CUDA
 
+![screenshot](image.png)
+
 ## Requirements
 
 ### GCC 10

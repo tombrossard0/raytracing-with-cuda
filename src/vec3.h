@@ -11,6 +11,7 @@ struct Vec3
     __host__ __device__ Vec3 operator-(const Vec3 &b) const { return Vec3(x - b.x, y - b.y, z - b.z); }
     __host__ __device__ Vec3 operator*(Vec3 &b) const { return Vec3(x * b.x, y * b.y, z * b.z); }
     __host__ __device__ Vec3 operator*(float b) const { return Vec3(x * b, y * b, z * b); }
+    __host__ __device__ Vec3 operator/(float b) const { return Vec3(x / b, y / b, z / b); }
     __host__ __device__ float dot(const Vec3 &b) const { return x * b.x + y * b.y + z * b.z; }
     __host__ __device__ Vec3 cross(const Vec3 &b) const {
         return Vec3(

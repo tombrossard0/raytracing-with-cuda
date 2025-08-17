@@ -124,7 +124,7 @@ public:
             std::string nodeLabel = "Sphere " + std::to_string(i);
             if (ImGui::CollapsingHeader(nodeLabel.c_str())) {
                 ImGui::DragFloat3(("Position##" + std::to_string(i)).c_str(), &spheres[i].center.x, 0.01f);
-                ImGui::DragFloat(("Radius##" + std::to_string(i)).c_str(), &spheres[i].radius, 0.01f, 0.1f, 5.0f);
+                ImGui::DragFloat(("Radius##" + std::to_string(i)).c_str(), &spheres[i].radius, 0.01f, 0.1f, 50.0f);
                 ImGui::ColorEdit3(("Color##" + std::to_string(i)).c_str(), &spheres[i].material.colour.x);
                 ImGui::ColorEdit3(("Emission color##" + std::to_string(i)).c_str(), &spheres[i].material.emissionColour.x);
                 ImGui::DragFloat(("EMission strength##" + std::to_string(i)).c_str(), &spheres[i].material.emissionStrength, 0.0f, 0.1f, 1.0f);
