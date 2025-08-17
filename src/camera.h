@@ -1,8 +1,7 @@
 #pragma once
 #include "vec3.h"
 
-struct Camera
-{
+struct Camera {
     Vec3 position;
     Vec3 forward;
     Vec3 up;

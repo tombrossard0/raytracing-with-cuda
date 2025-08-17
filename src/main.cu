@@ -1,21 +1,21 @@
-#include <iomanip> // for std::setw, std::setfill
-#include <iostream>
-#include <fstream>
-#include <sstream>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
+#include <fstream>
+#include <iomanip> // for std::setw, std::setfill
+#include <iostream>
+#include <sstream>
 
-#include "vec3.h"
-#include "sphere.h"
 #include "camera.h"
 #include "ppm.h"
 #include "scene.h"
+#include "sphere.h"
+#include "vec3.h"
 
 #include "render.h"
 
 #include "imgui.h"
-#include "imgui_impl_sdl2.h"
 #include "imgui_impl_opengl3.h"
+#include "imgui_impl_sdl2.h"
 
 // ---------- Main ----------
 
@@ -25,7 +25,7 @@ enum MODE {
     GIF,
 };
 
-int main(int argc, char** argv) {
+int main(int argc, char **argv) {
     // Default params
     MODE mode = MODE::REALTIME;
     int nFrames = 60;
@@ -74,19 +74,17 @@ int main(int argc, char** argv) {
     Scene scene(width, height);
 
     switch (mode) {
-        case MODE::REALTIME:
-            return scene.renderSDL2();
-        case MODE::GIF:
-            std::cout << "Rendering video: " << nFrames << " frames, "
-                    << totalAngle << " degrees rotation, "
-                    << width << "x" << height << "\n";
-            scene.renderGIF(nFrames, totalAngle);
-            break;
-        case MODE::PPM:
-            std::cout << "Rendering static image: " << output
-                    << " (" << width << "x" << height << ")\n";
-            scene.renderPPM(output);
-            break;
+    case MODE::REALTIME:
+        return scene.renderSDL2();
+    case MODE::GIF:
+        std::cout << "Rendering video: " << nFrames << " frames, " << totalAngle << " degrees rotation, "
+                  << width << "x" << height << "\n";
+        scene.renderGIF(nFrames, totalAngle);
+        break;
+    case MODE::PPM:
+        std::cout << "Rendering static image: " << output << " (" << width << "x" << height << ")\n";
+        scene.renderPPM(output);
+        break;
     }
 
     return 0;
