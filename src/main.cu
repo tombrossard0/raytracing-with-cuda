@@ -13,6 +13,8 @@
 #include "imgui_impl_sdl2.h"
 #include "imgui_impl_opengl3.h"
 
+const int MAX_SPHERES = 64;
+
 void render(Vec3 *fb, int width, int height, Sphere *sphere, int nSpheres, Camera *cam);
 
 // ---------- Utility functions ----------
@@ -44,7 +46,6 @@ public:
     float minRadius;
     float maxRadius;
 
-
     Scene(int w, int h)
         : width(w), height(h), fb(nullptr), spheres(nullptr),
           nSpheres(0), center(0,0,-3), radius(5.0f) , yawDeg(0.0f),
@@ -53,8 +54,8 @@ public:
         size_t fb_size = width * height * sizeof(Vec3);
         cudaMallocManaged(&fb, fb_size);
 
+        cudaMallocManaged(&spheres, MAX_SPHERES * sizeof(Sphere));
         nSpheres = 3;
-        cudaMallocManaged(&spheres, nSpheres * sizeof(Sphere));
         spheres[0] = Sphere(center + Vec3(0.5f, 0, 0), .5f, Vec3(1, 0, 0));
         spheres[1] = Sphere(center + Vec3(0, 1, -0.5), .3f, Vec3(0, 1, 0));
         spheres[2] = Sphere(center + Vec3(0.3, -1, -0.5), .4f, Vec3(0, 0, 1));
@@ -105,6 +106,28 @@ public:
         ImGui::SliderFloat("Radius", &radius, minRadius, maxRadius);
         ImGui::SliderFloat("Yaw", &yawDeg, -180.0f, 180.0f);
         ImGui::SliderFloat("Pitch", &pitchDeg, -89.0f, 89.0f);
+        ImGui::End();
+
+        ImGui::Begin("Spheres");
+        if (ImGui::Button("Add Sphere")) {
+            if (nSpheres < MAX_SPHERES) {
+                spheres[nSpheres++] = Sphere(Vec3(), 1);
+            }
+        }
+
+        for (int i = 0; i < nSpheres; i++) {
+            std::string nodeLabel = "Sphere " + std::to_string(i);
+            if (ImGui::CollapsingHeader(nodeLabel.c_str())) {
+                ImGui::DragFloat3(("Position##" + std::to_string(i)).c_str(), &spheres[i].center.x, 0.01f);
+                ImGui::DragFloat(("Radius##" + std::to_string(i)).c_str(), &spheres[i].radius, 0.01f, 0.1f, 5.0f);
+                ImGui::ColorEdit3(("Color##" + std::to_string(i)).c_str(), &spheres[i].material.colour.x);
+
+                if (ImGui::Button(("Remove##" + std::to_string(i)).c_str())) {
+                    for (int j = i; j < nSpheres - 1; j++) spheres[j] = spheres[j + 1];
+                    nSpheres--;
+                }
+            }
+        }
         ImGui::End();
 
         ImGui::Begin("Screenshots");
