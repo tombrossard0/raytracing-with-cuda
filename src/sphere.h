@@ -30,7 +30,7 @@ struct Sphere
      * @brief Check if a ray intersects the sphere
      * @param ray The ray to test
      * @param t Distance along the ray where intersection occurs
-     * @return true if intersection occurs, false otherwise
+     * @return hitInfo
      */
     __host__ __device__ HitInfo intersect(const Ray &ray) const {
         HitInfo hitInfo;
@@ -46,6 +46,8 @@ struct Sphere
         hitInfo.dst = (-b - sqrtf(discriminant)) / (2.0f * a);
         hitInfo.didHit = hitInfo.dst > 0;
         hitInfo.material = material;
+        hitInfo.hitPoint = ray.origin + ray.dir * hitInfo.dst;
+        hitInfo.normal = (hitInfo.hitPoint - center).normalize();
 
         return hitInfo;
     }

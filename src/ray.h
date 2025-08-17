@@ -4,8 +4,14 @@
 
 struct RayTracingMaterial {
     Vec3 colour;
+    Vec3 emissionColour;
+    float emissionStrength;
 
-    __host__ __device__ RayTracingMaterial(Vec3 _colour): colour(_colour) {}
+    __host__ __device__ RayTracingMaterial(Vec3 _colour)
+        : colour(_colour) {}
+
+    // __host__ __device__ RayTracingMaterial(Vec3 _colour, Vec3 _emissionColour, float _emissionStrength)
+    //     : colour(_colour), emissionColour(_emissionColour), emissionStrength(_emissionStrength) {}
 };
 
 struct HitInfo {

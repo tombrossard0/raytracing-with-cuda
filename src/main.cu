@@ -55,10 +55,14 @@ public:
         cudaMallocManaged(&fb, fb_size);
 
         cudaMallocManaged(&spheres, MAX_SPHERES * sizeof(Sphere));
-        nSpheres = 3;
-        spheres[0] = Sphere(center + Vec3(0.5f, 0, 0), .5f, Vec3(1, 0, 0));
-        spheres[1] = Sphere(center + Vec3(0, 1, -0.5), .3f, Vec3(0, 1, 0));
-        spheres[2] = Sphere(center + Vec3(0.3, -1, -0.5), .4f, Vec3(0, 0, 1));
+        nSpheres = 4;
+        spheres[0] = Sphere(center + Vec3(-4.418, -5.648, -3), 5, Vec3(1, 0, 0));
+        spheres[0].material.emissionColour = Vec3(1, 1, 1);
+        spheres[0].material.emissionStrength = 1;
+
+        spheres[1] = Sphere(center + Vec3(0.92, 0, -3), .3f, Vec3(0, 1, 0));
+        spheres[2] = Sphere(center + Vec3(2.23, 1.05, -6.13), .4f, Vec3(0, 0, 1));
+        spheres[3] = Sphere(center + Vec3(1.59, 5.28, -3.850), 5, Vec3(1, 0, 0));
     }
 
     ~Scene() {
@@ -84,7 +88,8 @@ public:
             forward,
             Vec3(0, 1, 0), // world up
             90.0f,          // fov
-            float(width) / float(height)
+            float(width) / float(height),
+            1
         );
     }
 
@@ -121,6 +126,8 @@ public:
                 ImGui::DragFloat3(("Position##" + std::to_string(i)).c_str(), &spheres[i].center.x, 0.01f);
                 ImGui::DragFloat(("Radius##" + std::to_string(i)).c_str(), &spheres[i].radius, 0.01f, 0.1f, 5.0f);
                 ImGui::ColorEdit3(("Color##" + std::to_string(i)).c_str(), &spheres[i].material.colour.x);
+                ImGui::ColorEdit3(("Emission color##" + std::to_string(i)).c_str(), &spheres[i].material.emissionColour.x);
+                ImGui::DragFloat(("EMission strength##" + std::to_string(i)).c_str(), &spheres[i].material.emissionStrength, 0.0f, 0.1f, 1.0f);
 
                 if (ImGui::Button(("Remove##" + std::to_string(i)).c_str())) {
                     for (int j = i; j < nSpheres - 1; j++) spheres[j] = spheres[j + 1];
