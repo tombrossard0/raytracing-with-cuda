@@ -55,7 +55,8 @@
         "ios": "cpp",
         "filesystem": "cpp",
         "*.cu": "cpp",
-        "*.cuh": "cpp"
+        "*.cuh": "cpp",
+        "__config": "cpp"
     },
     "clang-format.assumeFilename": ".clang-format",
     "editor.formatOnSave": true,
