@@ -15,6 +15,7 @@ struct Vec3
     HD Vec3(float x_, float y_, float z_) : x(x_), y(y_), z(z_) {}
 
     HD Vec3 operator-() const { return Vec3(-x, -y, -z); }
+    
     HD Vec3 operator+(const Vec3 &b) const { return Vec3(x + b.x, y + b.y, z + b.z); }
     HD Vec3 operator-(const Vec3 &b) const { return Vec3(x - b.x, y - b.y, z - b.z); }
     HD Vec3 operator*(const Vec3 &b) const { return Vec3(x * b.x, y * b.y, z * b.z); }
