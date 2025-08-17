@@ -1,4 +1,5 @@
 #pragma once
+
 #include "vec3.h"
 #include "vec4.h"
 
@@ -7,11 +8,7 @@ struct RayTracingMaterial {
     Vec3 emissionColour;
     float emissionStrength;
 
-    __host__ __device__ RayTracingMaterial(Vec3 _colour)
-        : colour(_colour) {}
-
-    // __host__ __device__ RayTracingMaterial(Vec3 _colour, Vec3 _emissionColour, float _emissionStrength)
-    //     : colour(_colour), emissionColour(_emissionColour), emissionStrength(_emissionStrength) {}
+    __host__ __device__ RayTracingMaterial(Vec3 _colour) : colour(_colour) {}
 };
 
 struct HitInfo {
@@ -25,14 +22,15 @@ struct HitInfo {
         : didHit(false), dst(0), hitPoint(Vec3()), normal(Vec3()), material(Vec3()) {}
 
     __host__ __device__ HitInfo(bool _didHit, float _dst, Vec3 _hitPoint, Vec3 _normal)
-        : didHit(_didHit), dst(_dst), hitPoint(_hitPoint), normal(_normal), material(RayTracingMaterial(Vec3())) {}
+        : didHit(_didHit), dst(_dst), hitPoint(_hitPoint), normal(_normal),
+          material(RayTracingMaterial(Vec3())) {}
 
-    __host__ __device__ HitInfo(bool _didHit, float _dst, Vec3 _hitPoint, Vec3 _normal, RayTracingMaterial _material)
+    __host__ __device__ HitInfo(bool _didHit, float _dst, Vec3 _hitPoint, Vec3 _normal,
+                                RayTracingMaterial _material)
         : didHit(_didHit), dst(_dst), hitPoint(_hitPoint), normal(_normal), material(_material) {}
 };
 
-struct Ray
-{
+struct Ray {
     Vec3 origin, dir;
     __host__ __device__ Ray(Vec3 o, Vec3 d) : origin(o), dir(d) {}
 };
