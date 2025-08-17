@@ -4,8 +4,8 @@ CCBIN = gcc-10
 CXX = g++
 
 # Flags
-NVCCFLAGS = -O2 -g -std=c++17 -Xcompiler "-Wall -Wextra -Werror" -lineinfo -I/usr/include/SDL2 -Iimgui -Iimgui/backends
-CXXFLAGS = -O2 -g -Wall -Wextra -Werror -I/usr/include/SDL2 -Iimgui -Iimgui/backends
+NVCCFLAGS = -O2 -g -std=c++17 -Xcompiler "-Wall -Wextra -Werror -Wno-error=cpp" -lineinfo -I/usr/include/SDL2 -Iimgui -Iimgui/backends
+CXXFLAGS = -O2 -g -Wall -Wextra -Wpedantic -Werror -I/usr/include/SDL2 -Iimgui -Iimgui/backends
 
 # Linker flags
 LDFLAGS = -lstdc++ -lm -lSDL2 -lGL
@@ -36,7 +36,7 @@ all: $(TARGET)
 %.o: %.cu
 	$(NVCC) -ccbin $(CCBIN) $(NVCCFLAGS) -c $< -o $@
 
-# Compile C++ (ImGui) files
+# Compile C++ files
 %.o: %.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
