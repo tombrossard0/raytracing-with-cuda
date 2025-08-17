@@ -9,7 +9,7 @@ UseTab: Never
 IndentPPDirectives: BeforeHash
 
 # Column limit
-ColumnLimit: 130
+ColumnLimit: 110
 
 AllowShortFunctionsOnASingleLine: InlineOnly
 AllowShortBlocksOnASingleLine: true

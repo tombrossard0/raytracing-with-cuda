@@ -1,4 +1,5 @@
 #pragma once
+
 #include <cmath>
 
 #ifdef __CUDACC__
@@ -55,7 +56,9 @@ struct Vec3 {
     }
 
     inline HD float dot(const Vec3 &b) const { return x * b.x + y * b.y + z * b.z; }
-    inline HD Vec3 cross(const Vec3 &b) const { return Vec3(y * b.z - z * b.y, z * b.x - x * b.z, x * b.y - y * b.x); }
+    inline HD Vec3 cross(const Vec3 &b) const {
+        return Vec3(y * b.z - z * b.y, z * b.x - x * b.z, x * b.y - y * b.x);
+    }
     inline HD Vec3 normalize() const {
         float len = sqrtf(x * x + y * y + z * z);
         return len > 0 ? (*this) / len : Vec3(0, 0, 0);

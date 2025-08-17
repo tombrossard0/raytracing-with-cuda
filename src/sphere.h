@@ -1,4 +1,5 @@
 #pragma once
+
 #include "ray.h"
 #include "vec3.h"
 
@@ -15,7 +16,8 @@ struct Sphere {
      * @param c Center of the sphere
      * @param r Radius of the sphere
      */
-    __host__ __device__ Sphere(Vec3 c, float r) : center(c), radius(r), material(RayTracingMaterial(Vec3(1, 0, 0))) {}
+    __host__ __device__ Sphere(Vec3 c, float r)
+        : center(c), radius(r), material(RayTracingMaterial(Vec3(1, 0, 0))) {}
 
     /**
      * @brief Construct a new Sphere object

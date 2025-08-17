@@ -1,15 +1,15 @@
 #pragma once
 
+#include "camera.h"
+#include "sphere.h"
+#include "vec3.h"
+
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
-#include "vec3.h"
-#include "sphere.h"
-#include "camera.h"
 #include <string>
 
-class Scene
-{
-public:
+class Scene {
+  public:
     int width, height;
     Vec3 *fb;
     Sphere *spheres;
