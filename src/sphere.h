@@ -1,12 +1,11 @@
 #pragma once
-#include "vec3.h"
 #include "ray.h"
+#include "vec3.h"
 
 /**
  * @brief Simple sphere class for raytracing.
  */
-struct Sphere
-{
+struct Sphere {
     Vec3 center;
     float radius;
     RayTracingMaterial material;
@@ -40,9 +39,8 @@ struct Sphere
         float b = 2.0f * oc.dot(ray.dir);
         float c = oc.dot(oc) - radius * radius;
         float discriminant = b * b - 4 * a * c;
-        if (discriminant < 0)
-            return hitInfo;
-        
+        if (discriminant < 0) return hitInfo;
+
         hitInfo.dst = (-b - sqrtf(discriminant)) / (2.0f * a);
         hitInfo.didHit = hitInfo.dst > 0;
         hitInfo.material = material;
