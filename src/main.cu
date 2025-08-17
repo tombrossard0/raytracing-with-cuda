@@ -101,7 +101,7 @@ public:
         SDL_Window* window = SDL_CreateWindow(
             "CUDA Raytracer",
             SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-            width, height,
+            1920, 1080,
             SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE
         );
 
