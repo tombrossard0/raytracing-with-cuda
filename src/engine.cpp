@@ -39,12 +39,12 @@ void Engine::initImGUI() {
 }
 
 // --- OpenGL texture for CUDA framebuffer ---
-GLuint Engine::createTexture(int w, int h) {
+GLuint Engine::createTexture(Scene &scene) {
     GLuint texture;
 
     glGenTextures(1, &texture);
     glBindTexture(GL_TEXTURE_2D, texture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, w, h, 0, GL_RGB, GL_FLOAT, nullptr);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, scene.width, scene.height, 0, GL_RGB, GL_FLOAT, nullptr);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glBindTexture(GL_TEXTURE_2D, 0);
@@ -88,15 +88,17 @@ void Engine::renderImGui(Scene *scene) {
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
-Engine::Engine(int w, int h)
+Engine::Engine(int w, int h, Scene *_scene)
     : window_width(w), window_height(h), mouse({false, 0, 0, 0.2f}), running(true),
       currentTime(SDL_GetTicks64()), deltaTime(0), lastFrameTime(currentTime), lastFPSTime(lastFrameTime),
-      frameCount(0), fps(0.0f) {
+      frameCount(0), fps(0.0f), scene(_scene) {
     this->mouse = {false, 0, 0, 0.2f};
 
     this->initWindow();
     this->initContext();
     this->initImGUI();
+
+    if (scene) { scene->texture = createTexture(*scene); }
 }
 
 Engine::~Engine() {
@@ -184,5 +186,23 @@ void Engine::processInputs(Scene *scene) {
         if (keystate[SDL_SCANCODE_D]) scene->center = scene->center - right * speed;   // right
         if (keystate[SDL_SCANCODE_SPACE]) scene->center = scene->center - up * speed;  // up
         if (keystate[SDL_SCANCODE_LCTRL]) scene->center = scene->center + up * speed;  // down
+    }
+}
+
+void Engine::start() {
+    while (running) {
+        updateTime();
+        processInputs(scene);
+
+        if (scene) {
+            scene->renderFrame();
+            uploadFbToTexture(*scene);
+        }
+
+        clearScreen();
+        renderImGui(scene);
+        computeFPS();
+
+        SDL_GL_SwapWindow(window);
     }
 }

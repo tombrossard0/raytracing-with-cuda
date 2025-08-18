@@ -1,5 +1,6 @@
 {
     "files.associations": {
+        "*.h": "cpp",
         "iostream": "cpp",
         "iomanip": "cpp",
         "cctype": "cpp",
@@ -54,7 +55,12 @@
         "__nullptr": "cpp",
         "ios": "cpp",
         "filesystem": "cpp",
-        "__config": "cpp"
+        "__config": "cpp",
+        "bitset": "cpp",
+        "shared_mutex": "cpp",
+        "mutex": "cpp",
+        "format": "cpp",
+        "locale": "cpp"
     },
     "editor.formatOnSave": true,
 }

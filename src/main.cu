@@ -25,26 +25,8 @@ enum RUN_MODE {
 };
 
 void run_realtime(Scene *scene) {
-    Engine engine{1920, 1080};
-
-    // --- Run Scene ---
-    if (scene) { scene->texture = engine.createTexture(scene->width, scene->height); }
-
-    while (engine.running) {
-        engine.updateTime();
-        engine.processInputs(scene);
-
-        if (scene) {
-            scene->renderFrame();
-            engine.uploadFbToTexture(*scene);
-        }
-
-        engine.clearScreen();
-        engine.renderImGui(scene);
-        engine.computeFPS();
-
-        SDL_GL_SwapWindow(engine.window);
-    }
+    Engine engine{1920, 1080, scene};
+    engine.start();
 }
 
 int main(int argc, char **argv) {

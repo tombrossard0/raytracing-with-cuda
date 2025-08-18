@@ -31,19 +31,20 @@ class Engine {
     int frameCount;
     float fps;
 
-    Engine(int w, int h);
+    Scene *scene;
+
+    Engine(int w, int h, Scene *scene);
     ~Engine();
 
     void updateTime();
-
-    GLuint createTexture(int w, int h);
+    GLuint createTexture(Scene &scene);
     void uploadFbToTexture(Scene &scene);
     void clearScreen();
     void renderImGui(Scene *scene);
-
     void computeFPS();
-
     void processInputs(Scene *scene);
+
+    void start();
 
   private:
     void initWindow();
