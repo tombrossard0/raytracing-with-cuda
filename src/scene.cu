@@ -15,7 +15,7 @@
 
 Scene::Scene(int w, int h)
     : width(w), height(h), fb(nullptr), spheres(nullptr), nSpheres(0), center(0, 0, -3), radius(5.0f),
-      yawDeg(0.0f), pitchDeg(0.0f), minRadius(1.0f), maxRadius(20.0) {
+      yawDeg(0.0f), pitchDeg(0.0f), minRadius(1.0f), maxRadius(20.0), texture(0) {
     size_t fb_size = width * height * sizeof(Vec3);
     cudaMallocManaged(&fb, fb_size);
 
@@ -31,6 +31,8 @@ Scene::Scene(int w, int h)
 }
 
 Scene::~Scene() {
+    if (texture) { glDeleteTextures(1, &texture); }
+
     cudaDeviceSynchronize(); // ensure all kernels are finished
     if (fb) { cudaFree(fb); };
     if (spheres) { cudaFree(spheres); };
@@ -59,26 +61,8 @@ void Scene::renderFrame() {
     render(fb, width, height, spheres, nSpheres, &cam);
 }
 
-void Scene::renderGUI(GLuint &tex, bool &running) {
-    ImGui_ImplSDL2_NewFrame();
-    ImGui_ImplOpenGL3_NewFrame();
-    ImGui::NewFrame();
-
-    if (ImGui::BeginMainMenuBar()) {
-        if (ImGui::BeginMenu("File")) {
-            if (ImGui::MenuItem("New")) {}
-            if (ImGui::MenuItem("Open...")) {}
-            if (ImGui::MenuItem("Exit")) { running = false; }
-            ImGui::EndMenu();
-        }
-        if (ImGui::BeginMenu("Help")) {
-            if (ImGui::MenuItem("About")) {}
-            ImGui::EndMenu();
-        }
-        ImGui::EndMainMenuBar();
-    }
-
-    ImGui::Begin("Render Window");
+void Scene::renderGUI(GLuint &tex) {
+    ImGui::Begin("Render Scene");
     ImGui::Image((void *)(intptr_t)tex, ImVec2(width, height));
     ImGui::End();
 

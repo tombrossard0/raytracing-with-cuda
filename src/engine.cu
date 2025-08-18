@@ -52,6 +52,42 @@ GLuint Engine::createTexture(int w, int h) {
     return texture;
 }
 
+void Engine::uploadFbToTexture(Scene &scene) {
+    glBindTexture(GL_TEXTURE_2D, scene.texture);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, scene.width, scene.height, GL_RGB, GL_FLOAT, scene.fb);
+    glBindTexture(GL_TEXTURE_2D, 0);
+}
+
+void Engine::clearScreen() {
+    glClearColor(0, 0, 0, 1);
+    glClear(GL_COLOR_BUFFER_BIT);
+}
+
+void Engine::renderImGui(Scene *scene) {
+    ImGui_ImplSDL2_NewFrame();
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui::NewFrame();
+
+    if (ImGui::BeginMainMenuBar()) {
+        if (ImGui::BeginMenu("File")) {
+            if (ImGui::MenuItem("New")) {}
+            if (ImGui::MenuItem("Open...")) {}
+            if (ImGui::MenuItem("Exit")) { this->running = false; }
+            ImGui::EndMenu();
+        }
+        if (ImGui::BeginMenu("Help")) {
+            if (ImGui::MenuItem("About")) {}
+            ImGui::EndMenu();
+        }
+        ImGui::EndMainMenuBar();
+    }
+
+    scene->renderGUI(scene->texture);
+
+    ImGui::Render();
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+}
+
 Engine::Engine(int w, int h)
     : window_width(w), window_height(h), mouse({false, 0, 0, 0.2f}), running(true),
       lastFrameTime(SDL_GetTicks()), lastFPSTime(lastFrameTime), frameCount(0), fps(0.0f) {
@@ -74,4 +110,16 @@ Engine::~Engine() {
     // --- Cleanup Window ---
     SDL_DestroyWindow(this->window);
     SDL_Quit();
+}
+
+void Engine::computeFPS(Uint64 currentTime) {
+    this->frameCount++;
+    if (currentTime - this->lastFPSTime >= 1000) { // every second
+        this->fps = this->frameCount * 1000.0f / (currentTime - this->lastFPSTime);
+        this->frameCount = 0;
+        this->lastFPSTime = currentTime;
+
+        std::string title = "CUDA Raytracer - FPS: " + std::to_string((int)this->fps);
+        SDL_SetWindowTitle(this->window, title.c_str());
+    }
 }

@@ -23,12 +23,14 @@ class Scene {
     float minRadius;
     float maxRadius;
 
+    GLuint texture; // Only sets in realtime engine
+
     Scene(int w, int h);
     ~Scene();
 
     Camera makeCamera();
     void renderFrame();
-    void renderGUI(GLuint &tex, bool &running);
+    void renderGUI(GLuint &tex);
     void processInputs(const Uint8 *keystate, float deltaTime, bool &running, SDL_Event *event, Mouse &mouse);
 
     void renderPPMFrame(const std::string &filename);

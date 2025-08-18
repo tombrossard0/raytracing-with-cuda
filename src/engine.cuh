@@ -8,6 +8,7 @@
 #include <iostream>
 
 #include "mouse.hpp"
+#include "scene.hpp"
 
 class Engine {
   public:
@@ -29,6 +30,11 @@ class Engine {
     ~Engine();
 
     GLuint createTexture(int w, int h);
+    void uploadFbToTexture(Scene &scene);
+    void clearScreen();
+    void renderImGui(Scene *scene);
+
+    void computeFPS(Uint64 currentTime);
 
   private:
     void initWindow();
