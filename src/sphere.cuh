@@ -3,12 +3,6 @@
 #include "ray.cuh"
 #include "vec3.cuh"
 
-#ifdef __CUDACC__
-    #define HD __host__ __device__
-#else
-    #define HD
-#endif
-
 /**
  * @brief Simple sphere class for raytracing.
  */
@@ -22,7 +16,8 @@ struct Sphere {
      * @param c Center of the sphere
      * @param r Radius of the sphere
      */
-    HD Sphere(Vec3 c, float r) : center(c), radius(r), material(RayTracingMaterial(Vec3(1, 0, 0))) {}
+    __host__ __device__ Sphere(Vec3 c, float r)
+        : center(c), radius(r), material(RayTracingMaterial(Vec3(1, 0, 0))) {}
 
     /**
      * @brief Construct a new Sphere object
@@ -30,7 +25,7 @@ struct Sphere {
      * @param r Radius of the sphere
      * @param m Material of the sphere
      */
-    HD Sphere(Vec3 c, float r, Vec3 m) : center(c), radius(r), material(m) {}
+    __host__ __device__ Sphere(Vec3 c, float r, Vec3 m) : center(c), radius(r), material(m) {}
 
     /**
      * @brief Check if a ray intersects the sphere
@@ -38,7 +33,7 @@ struct Sphere {
      * @param t Distance along the ray where intersection occurs
      * @return hitInfo
      */
-    HD HitInfo intersect(const Ray &ray) const {
+    __host__ __device__ HitInfo intersect(const Ray &ray) const {
         HitInfo hitInfo;
 
         Vec3 oc = ray.origin - center;

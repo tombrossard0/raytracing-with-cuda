@@ -65,7 +65,7 @@ __device__ Vec3 trace(Ray ray, unsigned int &seed, const Sphere *spheres, int nS
     Vec3 incomingLight = Vec3(0, 0, 0);
     Vec3 rayColour = Vec3(1, 1, 1);
 
-    for (int i = 0; i < 30; i++) {
+    for (int i = 0; i < 10; i++) {
         HitInfo hitInfo = calculateRayCollision(ray, nSpheres, spheres);
         if (hitInfo.didHit) {
             ray.origin = hitInfo.hitPoint;
