@@ -107,62 +107,44 @@ void Engine::computeFPS() {
 }
 
 void Engine::processInputs(Scene *scene) {
-    SDL_Event event;
+    inputManager.update(running);
+    MouseState mouse = inputManager.mouse;
 
-    while (SDL_PollEvent(&event)) {
-        ImGui_ImplSDL2_ProcessEvent(&event);
+    if (inputManager.isKeyDown(SDL_SCANCODE_ESCAPE)) running = false;
 
-        if (event.type == SDL_QUIT) running = false;
+    if (scene && scene->focus && ImGui::GetIO().WantCaptureMouse) {
+        // Movements control
+        float sensitivity = 0.2f;
 
-        if (event.type == SDL_MOUSEBUTTONDOWN && event.button.button == SDL_BUTTON_RIGHT) {
-            mouse.mouseLook = true;
-            SDL_GetMouseState(&mouse.lastMouseX, &mouse.lastMouseY);
-            SDL_SetRelativeMouseMode(SDL_TRUE);
-        }
-        if (event.type == SDL_MOUSEBUTTONUP && event.button.button == SDL_BUTTON_RIGHT) {
-            mouse.mouseLook = false;
-            SDL_SetRelativeMouseMode(SDL_FALSE);
-        }
-        if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_ESCAPE) { running = false; }
-
-        if (scene && event.type == SDL_MOUSEMOTION && mouse.mouseLook) {
-            int dx = event.motion.xrel;
-            int dy = -event.motion.yrel;
-            scene->yawDeg += dx * mouse.sensitivity;
-            scene->pitchDeg += dy * mouse.sensitivity;
+        if (mouse.right.pressed) {
+            scene->yawDeg += mouse.dx * sensitivity;
+            scene->pitchDeg -= mouse.dy * sensitivity;
             if (scene->pitchDeg > 89.0f) scene->pitchDeg = 89.0f;
             if (scene->pitchDeg < -89.0f) scene->pitchDeg = -89.0f;
+            SDL_SetRelativeMouseMode(SDL_TRUE);
+        } else {
+            SDL_SetRelativeMouseMode(SDL_FALSE);
         }
-        if (scene && event.type == SDL_MOUSEWHEEL) {
-            scene->radius -= event.wheel.y * 0.5f;
-            if (scene->radius < scene->minRadius) scene->radius = scene->minRadius;
-            if (scene->radius > scene->maxRadius) scene->radius = scene->maxRadius;
-        }
-    }
 
-    const Uint8 *keystate = SDL_GetKeyboardState(NULL);
+        scene->radius -= 0.5f * mouse.wheel;
+        if (scene->radius < scene->minRadius) scene->radius = scene->minRadius;
+        if (scene->radius > scene->maxRadius) scene->radius = scene->maxRadius;
 
-    if (scene) {
-        float speed = 10.5f * deltaTime; // movement speed
+        float speed = 10.5f * deltaTime;
         float yawRad = scene->yawDeg * M_PI / 180.0f;
         float pitchRad = scene->pitchDeg * M_PI / 180.0f;
 
-        // Forward vector
         Vec3 forward(cosf(pitchRad) * cosf(yawRad), sinf(pitchRad), cosf(pitchRad) * sinf(yawRad));
-        forward = forward.normalize();
-
-        // Right vector
+        forward = -forward.normalize();
         Vec3 right = forward.cross(Vec3(0, 1, 0)).normalize();
-
-        // Up vector
         Vec3 up = right.cross(forward).normalize();
 
-        if (keystate[SDL_SCANCODE_W]) scene->center = scene->center - forward * speed; // forward
-        if (keystate[SDL_SCANCODE_S]) scene->center = scene->center + forward * speed; // backward
-        if (keystate[SDL_SCANCODE_A]) scene->center = scene->center + right * speed;   // left
-        if (keystate[SDL_SCANCODE_D]) scene->center = scene->center - right * speed;   // right
-        if (keystate[SDL_SCANCODE_SPACE]) scene->center = scene->center - up * speed;  // up
-        if (keystate[SDL_SCANCODE_LCTRL]) scene->center = scene->center + up * speed;  // down
+        if (inputManager.isKeyDown(SDL_SCANCODE_W)) scene->center = scene->center + forward * speed;
+        if (inputManager.isKeyDown(SDL_SCANCODE_S)) scene->center = scene->center - forward * speed;
+        if (inputManager.isKeyDown(SDL_SCANCODE_A)) scene->center = scene->center - right * speed;
+        if (inputManager.isKeyDown(SDL_SCANCODE_D)) scene->center = scene->center + right * speed;
+        if (inputManager.isKeyDown(SDL_SCANCODE_SPACE)) scene->center = scene->center - up * speed;
+        if (inputManager.isKeyDown(SDL_SCANCODE_LCTRL)) scene->center = scene->center + up * speed;
     }
 }
 
@@ -172,7 +154,7 @@ void Engine::start() {
         updateTime();
 
         if (scene) {
-            scene->renderFrame();
+            if (scene->focus) scene->renderFrame();
             uploadFbToTexture(*scene);
         }
 
@@ -185,11 +167,9 @@ void Engine::start() {
 }
 
 Engine::Engine(int w, int h, Scene *_scene)
-    : window_width(w), window_height(h), mouse({false, 0, 0, 0.2f}), running(true),
-      currentTime(SDL_GetTicks64()), deltaTime(0), lastFrameTime(currentTime), lastFPSTime(lastFrameTime),
-      frameCount(0), fps(0.0f), scene(_scene) {
-    this->mouse = {false, 0, 0, 0.2f};
-
+    : window_width(w), window_height(h), inputManager{}, running(true), currentTime(SDL_GetTicks64()),
+      deltaTime(0), lastFrameTime(currentTime), lastFPSTime(lastFrameTime), frameCount(0), fps(0.0f),
+      scene(_scene) {
     this->initWindow();
     this->initContext();
     this->initImGUI();

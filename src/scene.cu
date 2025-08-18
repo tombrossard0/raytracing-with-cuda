@@ -64,7 +64,11 @@ void Scene::renderFrame() {
 void Scene::renderGUI(GLuint &tex) {
     ImGui::Begin("Render Scene");
     ImGui::Image((void *)(intptr_t)tex, ImVec2(width, height));
+    if (ImGui::IsItemClicked()) focus = true;
+    bool hovered = ImGui::IsItemHovered();
     ImGui::End();
+
+    if (!hovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) focus = false;
 
     ImGui::Begin("Camera Controls");
     ImGui::SliderFloat("Radius", &radius, minRadius, maxRadius);

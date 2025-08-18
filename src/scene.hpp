@@ -1,7 +1,6 @@
 #pragma once
 
 #include "camera.cuh"
-#include "mouse.hpp"
 #include "sphere.cuh"
 #include "vec3.cuh"
 
@@ -22,6 +21,8 @@ class Scene {
     float pitchDeg;
     float minRadius;
     float maxRadius;
+
+    bool focus;
 
     GLuint texture; // Only sets in realtime engine
 

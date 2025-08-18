@@ -9,7 +9,7 @@
 #include <SDL2/SDL_video.h>
 #include <iostream>
 
-#include "mouse.hpp"
+#include "InputManager.hpp"
 #include "scene.hpp"
 
 class Engine {
@@ -19,7 +19,7 @@ class Engine {
     SDL_Window *window;
     SDL_GLContext sdl_gl_context;
 
-    Mouse mouse;
+    InputManager inputManager;
 
     bool running;
 
