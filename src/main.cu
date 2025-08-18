@@ -5,13 +5,13 @@
 #include <iostream>
 #include <sstream>
 
-#include "camera.h"
-#include "ppm.h"
-#include "scene.h"
-#include "sphere.h"
-#include "vec3.h"
+#include "camera.cuh"
+#include "ppm.hpp"
+#include "scene.hpp"
+#include "sphere.hpp"
+#include "vec3.hpp"
 
-#include "render.h"
+#include "render.hpp"
 
 #include "imgui.h"
 #include "imgui_impl_opengl3.h"

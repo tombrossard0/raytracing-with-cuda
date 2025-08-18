@@ -1,8 +1,8 @@
 #pragma once
 
-#include "camera.h"
-#include "sphere.h"
-#include "vec3.h"
+#include "camera.cuh"
+#include "sphere.hpp"
+#include "vec3.hpp"
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>

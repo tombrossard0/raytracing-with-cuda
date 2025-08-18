@@ -62,7 +62,6 @@ struct Vec4 {
 
     inline HD float dot(const Vec4 &b) const { return x * b.x + y * b.y + z * b.z + w * b.w; }
 
-    // Normalize
     inline HD Vec4 normalize() const {
         float len = sqrtf(x * x + y * y + z * z + w * w);
         return len > 0 ? (*this) / len : Vec4(0, 0, 0, 0);

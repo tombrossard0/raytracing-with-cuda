@@ -1,4 +1,4 @@
-#include "ppm.h"
+#include "ppm.hpp"
 
 void savePPM(const std::string &filename, Vec3 *fb, int width, int height) {
     auto toByte = [](float x) {

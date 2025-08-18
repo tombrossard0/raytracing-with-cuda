@@ -1,7 +1,7 @@
 #pragma once
 
-#include "ray.h"
-#include "vec3.h"
+#include "ray.hpp"
+#include "vec3.hpp"
 
 #ifdef __CUDACC__
     #define HD __host__ __device__

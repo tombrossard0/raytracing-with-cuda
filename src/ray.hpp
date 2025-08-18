@@ -1,7 +1,7 @@
 #pragma once
 
-#include "vec3.h"
-#include "vec4.h"
+#include "vec3.hpp"
+#include "vec4.hpp"
 
 #ifdef __CUDACC__
     #define HD __host__ __device__
