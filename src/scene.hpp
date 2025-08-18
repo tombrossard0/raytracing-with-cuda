@@ -27,7 +27,7 @@ class Scene {
 
     Camera makeCamera();
     void renderFrame();
-    void renderGUI(GLuint &tex);
+    void renderGUI(GLuint &tex, bool &running);
     void processKeyboard(const Uint8 *keystate, float deltaTime);
     int renderSDL2();
 

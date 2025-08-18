@@ -58,10 +58,24 @@ void Scene::renderFrame() {
     render(fb, width, height, spheres, nSpheres, &cam);
 }
 
-void Scene::renderGUI(GLuint &tex) {
+void Scene::renderGUI(GLuint &tex, bool &running) {
     ImGui_ImplSDL2_NewFrame();
     ImGui_ImplOpenGL3_NewFrame();
     ImGui::NewFrame();
+
+    if (ImGui::BeginMainMenuBar()) {
+        if (ImGui::BeginMenu("File")) {
+            if (ImGui::MenuItem("New")) {}
+            if (ImGui::MenuItem("Open...")) {}
+            if (ImGui::MenuItem("Exit")) { running = false; }
+            ImGui::EndMenu();
+        }
+        if (ImGui::BeginMenu("Help")) {
+            if (ImGui::MenuItem("About")) {}
+            ImGui::EndMenu();
+        }
+        ImGui::EndMainMenuBar();
+    }
 
     ImGui::Begin("Render Window");
     ImGui::Image((void *)(intptr_t)tex, ImVec2(width, height));
@@ -228,8 +242,7 @@ int Scene::renderSDL2() {
         glClear(GL_COLOR_BUFFER_BIT);
 
         // --- ImGui frame ---
-        renderGUI(tex); // TODO: change to not renderGUI inside the scene but render a scene inside GUI to
-                        // create multiple scenes
+        renderGUI(tex, running);
 
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
