@@ -1,6 +1,7 @@
 #pragma once
 
 #include "camera.cuh"
+#include "mouse.hpp"
 #include "sphere.cuh"
 #include "vec3.cuh"
 
@@ -28,8 +29,8 @@ class Scene {
     Camera makeCamera();
     void renderFrame();
     void renderGUI(GLuint &tex, bool &running);
-    void processKeyboard(const Uint8 *keystate, float deltaTime);
-    int renderSDL2(SDL_Window *window);
+    void processInputs(const Uint8 *keystate, float deltaTime, bool &running, SDL_Event *event, Mouse &mouse);
+    int renderSDL2(SDL_Window *window, GLuint &tex);
 
     void renderPPMFrame(const std::string &filename);
     void renderPPM(const std::string &filename = "output.ppm");

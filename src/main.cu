@@ -23,6 +23,19 @@ enum RUN_MODE {
     GIF,
 };
 
+GLuint create_texture(int width, int height) {
+    // --- OpenGL texture for CUDA framebuffer ---
+    GLuint tex;
+    glGenTextures(1, &tex);
+    glBindTexture(GL_TEXTURE_2D, tex);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, width, height, 0, GL_RGB, GL_FLOAT, nullptr);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    return tex;
+}
+
 int run_realtime(Scene &scene) {
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
         std::cerr << "Failed to init SDL: " << SDL_GetError() << std::endl;
@@ -51,7 +64,9 @@ int run_realtime(Scene &scene) {
     ImGui_ImplSDL2_InitForOpenGL(window, sdl_gl_context);
     ImGui_ImplOpenGL3_Init("#version 330");
 
-    if (scene.renderSDL2(window)) { return 1; }
+    GLuint scene_texture = create_texture(scene.width, scene.height);
+    if (scene.renderSDL2(window, scene_texture)) { return 1; }
+    glDeleteTextures(1, &scene_texture);
 
     // --- Cleanup Imgui ---
     ImGui_ImplOpenGL3_Shutdown();

@@ -117,7 +117,37 @@ void Scene::renderGUI(GLuint &tex, bool &running) {
     ImGui::End();
 }
 
-void Scene::processKeyboard(const Uint8 *keystate, float deltaTime) {
+void Scene::processInputs(const Uint8 *keystate, float deltaTime, bool &running, SDL_Event *event,
+                          Mouse &mouse) {
+    while (SDL_PollEvent(event)) {
+        ImGui_ImplSDL2_ProcessEvent(event);
+        if (event->type == SDL_QUIT) running = false;
+
+        if (event->type == SDL_MOUSEBUTTONDOWN && event->button.button == SDL_BUTTON_RIGHT) {
+            mouse.mouseLook = true;
+            SDL_GetMouseState(&mouse.lastMouseX, &mouse.lastMouseY);
+            SDL_SetRelativeMouseMode(SDL_TRUE);
+        }
+        if (event->type == SDL_MOUSEBUTTONUP && event->button.button == SDL_BUTTON_RIGHT) {
+            mouse.mouseLook = false;
+            SDL_SetRelativeMouseMode(SDL_FALSE);
+        }
+        if (event->type == SDL_MOUSEMOTION && mouse.mouseLook) {
+            int dx = event->motion.xrel;
+            int dy = -event->motion.yrel;
+            yawDeg += dx * mouse.sensitivity;
+            pitchDeg += dy * mouse.sensitivity;
+            if (pitchDeg > 89.0f) pitchDeg = 89.0f;
+            if (pitchDeg < -89.0f) pitchDeg = -89.0f;
+        }
+        if (event->type == SDL_MOUSEWHEEL) {
+            radius -= event->wheel.y * 0.5f;
+            if (radius < minRadius) radius = minRadius;
+            if (radius > maxRadius) radius = maxRadius;
+        }
+        if (event->type == SDL_KEYDOWN && event->key.keysym.sym == SDLK_ESCAPE) { running = false; }
+    }
+
     float speed = 10.5f * deltaTime; // movement speed
     float yawRad = yawDeg * M_PI / 180.0f;
     float pitchRad = pitchDeg * M_PI / 180.0f;
@@ -138,24 +168,15 @@ void Scene::processKeyboard(const Uint8 *keystate, float deltaTime) {
     if (keystate[SDL_SCANCODE_D]) center = center - right * speed;   // right
     if (keystate[SDL_SCANCODE_SPACE]) center = center - up * speed;  // up
     if (keystate[SDL_SCANCODE_LCTRL]) center = center + up * speed;  // down
+
+    if (running) { running = true; }
 }
 
-int Scene::renderSDL2(SDL_Window *window) {
-    // --- OpenGL texture for CUDA framebuffer ---
-    GLuint tex;
-    glGenTextures(1, &tex);
-    glBindTexture(GL_TEXTURE_2D, tex);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, width, height, 0, GL_RGB, GL_FLOAT, nullptr);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glBindTexture(GL_TEXTURE_2D, 0);
-
+int Scene::renderSDL2(SDL_Window *window, GLuint &tex) {
     bool running = true;
-    SDL_Event event;
 
-    bool mouseLook = false;
-    int lastMouseX = 0, lastMouseY = 0;
-    float sensitivity = 0.2f;
+    SDL_Event event;
+    Mouse mouse = {false, 0, 0, 0.2f};
 
     Uint32 lastFrameTime = SDL_GetTicks();
     Uint32 lastFPSTime = lastFrameTime;
@@ -163,36 +184,6 @@ int Scene::renderSDL2(SDL_Window *window) {
     float fps = 0.0f;
 
     while (running) {
-        // --- Input ---
-        while (SDL_PollEvent(&event)) {
-            ImGui_ImplSDL2_ProcessEvent(&event);
-            if (event.type == SDL_QUIT) running = false;
-
-            if (event.type == SDL_MOUSEBUTTONDOWN && event.button.button == SDL_BUTTON_RIGHT) {
-                mouseLook = true;
-                SDL_GetMouseState(&lastMouseX, &lastMouseY);
-                SDL_SetRelativeMouseMode(SDL_TRUE);
-            }
-            if (event.type == SDL_MOUSEBUTTONUP && event.button.button == SDL_BUTTON_RIGHT) {
-                mouseLook = false;
-                SDL_SetRelativeMouseMode(SDL_FALSE);
-            }
-            if (event.type == SDL_MOUSEMOTION && mouseLook) {
-                int dx = event.motion.xrel;
-                int dy = -event.motion.yrel;
-                yawDeg += dx * sensitivity;
-                pitchDeg += dy * sensitivity;
-                if (pitchDeg > 89.0f) pitchDeg = 89.0f;
-                if (pitchDeg < -89.0f) pitchDeg = -89.0f;
-            }
-            if (event.type == SDL_MOUSEWHEEL) {
-                radius -= event.wheel.y * 0.5f;
-                if (radius < minRadius) radius = minRadius;
-                if (radius > maxRadius) radius = maxRadius;
-            }
-            if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_ESCAPE) { running = false; }
-        }
-
         // --- Timing ---
         Uint32 currentTime = SDL_GetTicks();
         float deltaTime = (currentTime - lastFrameTime) / 1000.0f; // seconds
@@ -200,7 +191,7 @@ int Scene::renderSDL2(SDL_Window *window) {
 
         // --- Input ---
         const Uint8 *keystate = SDL_GetKeyboardState(NULL);
-        processKeyboard(keystate, deltaTime);
+        processInputs(keystate, deltaTime, running, &event, mouse);
 
         // --- CUDA render ---
         renderFrame();
@@ -234,7 +225,6 @@ int Scene::renderSDL2(SDL_Window *window) {
         }
     }
 
-    glDeleteTextures(1, &tex);
     return 0;
 }
 
