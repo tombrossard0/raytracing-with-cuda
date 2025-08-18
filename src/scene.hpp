@@ -31,7 +31,6 @@ class Scene {
     Camera makeCamera();
     void renderFrame();
     void renderGUI(GLuint &tex);
-    void processInputs(const Uint8 *keystate, float deltaTime, bool &running, SDL_Event *event, Mouse &mouse);
 
     void renderPPMFrame(const std::string &filename);
     void renderPPM(const std::string &filename = "output.ppm");

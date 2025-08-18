@@ -1,3 +1,5 @@
+#pragma once
+
 #include "imgui.h"
 #include "imgui_impl_opengl3.h"
 #include "imgui_impl_sdl2.h"
@@ -40,6 +42,8 @@ class Engine {
     void renderImGui(Scene *scene);
 
     void computeFPS();
+
+    void processInputs(Scene &scene);
 
   private:
     void initWindow();

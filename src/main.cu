@@ -24,34 +24,24 @@ enum RUN_MODE {
     GIF,
 };
 
-void run_realtime(Scene &scene) {
+void run_realtime(Scene *scene) {
     Engine engine{1920, 1080};
 
     // --- Run Scene ---
-    scene.texture = engine.createTexture(scene.width, scene.height);
+    scene->texture = engine.createTexture(scene->width, scene->height);
 
     while (engine.running) {
-        // --- Timing ---
         engine.updateTime();
 
-        // --- Input ---
-        const Uint8 *keystate = SDL_GetKeyboardState(NULL);
-        scene.processInputs(keystate, engine.deltaTime, engine.running, &engine.event, engine.mouse);
+        engine.processInputs(*scene);
+        scene->renderFrame();
 
-        // --- CUDA render ---
-        scene.renderFrame();
-
-        // --- Upload framebuffer to OpenGL texture ---
-        engine.uploadFbToTexture(scene);
+        engine.uploadFbToTexture(*scene);
         engine.clearScreen();
-
-        // --- ImGui frame ---
-        engine.renderImGui(&scene);
+        engine.renderImGui(scene);
+        engine.computeFPS();
 
         SDL_GL_SwapWindow(engine.window);
-
-        // --- FPS ---
-        engine.computeFPS();
     }
 }
 
@@ -105,7 +95,7 @@ int main(int argc, char **argv) {
 
     switch (mode) {
     case RUN_MODE::REALTIME:
-        run_realtime(scene);
+        run_realtime(&scene);
         break;
     case RUN_MODE::GIF:
         std::cout << "Rendering video: " << nFrames << " frames, " << totalAngle << " degrees rotation, "

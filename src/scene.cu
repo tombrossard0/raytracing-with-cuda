@@ -102,61 +102,6 @@ void Scene::renderGUI(GLuint &tex) {
     ImGui::End();
 }
 
-void Scene::processInputs(const Uint8 *keystate, float deltaTime, bool &running, SDL_Event *event,
-                          Mouse &mouse) {
-    while (SDL_PollEvent(event)) {
-        ImGui_ImplSDL2_ProcessEvent(event);
-        if (event->type == SDL_QUIT) running = false;
-
-        if (event->type == SDL_MOUSEBUTTONDOWN && event->button.button == SDL_BUTTON_RIGHT) {
-            mouse.mouseLook = true;
-            SDL_GetMouseState(&mouse.lastMouseX, &mouse.lastMouseY);
-            SDL_SetRelativeMouseMode(SDL_TRUE);
-        }
-        if (event->type == SDL_MOUSEBUTTONUP && event->button.button == SDL_BUTTON_RIGHT) {
-            mouse.mouseLook = false;
-            SDL_SetRelativeMouseMode(SDL_FALSE);
-        }
-        if (event->type == SDL_MOUSEMOTION && mouse.mouseLook) {
-            int dx = event->motion.xrel;
-            int dy = -event->motion.yrel;
-            yawDeg += dx * mouse.sensitivity;
-            pitchDeg += dy * mouse.sensitivity;
-            if (pitchDeg > 89.0f) pitchDeg = 89.0f;
-            if (pitchDeg < -89.0f) pitchDeg = -89.0f;
-        }
-        if (event->type == SDL_MOUSEWHEEL) {
-            radius -= event->wheel.y * 0.5f;
-            if (radius < minRadius) radius = minRadius;
-            if (radius > maxRadius) radius = maxRadius;
-        }
-        if (event->type == SDL_KEYDOWN && event->key.keysym.sym == SDLK_ESCAPE) { running = false; }
-    }
-
-    float speed = 10.5f * deltaTime; // movement speed
-    float yawRad = yawDeg * M_PI / 180.0f;
-    float pitchRad = pitchDeg * M_PI / 180.0f;
-
-    // Forward vector
-    Vec3 forward(cosf(pitchRad) * cosf(yawRad), sinf(pitchRad), cosf(pitchRad) * sinf(yawRad));
-    forward = forward.normalize();
-
-    // Right vector
-    Vec3 right = forward.cross(Vec3(0, 1, 0)).normalize();
-
-    // Up vector
-    Vec3 up = right.cross(forward).normalize();
-
-    if (keystate[SDL_SCANCODE_W]) center = center - forward * speed; // forward
-    if (keystate[SDL_SCANCODE_S]) center = center + forward * speed; // backward
-    if (keystate[SDL_SCANCODE_A]) center = center + right * speed;   // left
-    if (keystate[SDL_SCANCODE_D]) center = center - right * speed;   // right
-    if (keystate[SDL_SCANCODE_SPACE]) center = center - up * speed;  // up
-    if (keystate[SDL_SCANCODE_LCTRL]) center = center + up * speed;  // down
-
-    if (running) { running = true; }
-}
-
 void Scene::renderPPMFrame(const std::string &filename) {
     Camera cam = makeCamera();
     render(fb, width, height, spheres, nSpheres, &cam);
