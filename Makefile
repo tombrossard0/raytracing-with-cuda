@@ -22,24 +22,36 @@ IMGUI_SRC = \
     imgui/backends/imgui_impl_sdl2.cpp \
     imgui/backends/imgui_impl_opengl3.cpp
 
+BUILD_DIR = build
+
 # Object files
-OBJ_CU   = $(SRC_CU:.cu=.o)
-OBJ_CPP  = $(SRC_CPP:.cpp=.o)
-IMGUI_OBJ = $(IMGUI_SRC:.cpp=.o)
+OBJ_CU    = $(patsubst src/%.cu,$(BUILD_DIR)/%.o,$(SRC_CU))
+OBJ_CPP   = $(patsubst src/%.cpp,$(BUILD_DIR)/%.o,$(SRC_CPP))
+IMGUI_OBJ = $(patsubst %.cpp,$(BUILD_DIR)/%.o,$(IMGUI_SRC))
 
 # Target
-TARGET = raytracer
+TARGET = $(BUILD_DIR)/raytracer
 OUTPUT_NAME = output
+
+.PHONY: all clean run run-image run-video
 
 # Default target
 all: $(TARGET)
 
+# Rule to ensure build folder exists
+$(BUILD_DIR):
+	mkdir -p $(BUILD_DIR) $(BUILD_DIR)/imgui $(BUILD_DIR)/imgui/backends
+
 # Compile CUDA files
-%.o: %.cu
+$(BUILD_DIR)/%.o: src/%.cu | $(BUILD_DIR)
 	$(NVCC) -ccbin $(CCBIN) $(NVCCFLAGS) -c $< -o $@
 
 # Compile C++ files
-%.o: %.cpp
+$(BUILD_DIR)/%.o: src/%.cpp | $(BUILD_DIR)
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+# Compile IMGUI files
+$(BUILD_DIR)/%.o: %.cpp | $(BUILD_DIR)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 # Link all objects
@@ -60,4 +72,4 @@ run-video: all
 
 # Clean
 clean:
-	rm -f $(TARGET) $(OUTPUT_NAME).* frame_* *.o **/*.o
+	rm -rf $(BUILD_DIR) $(OUTPUT_NAME).* frame_*
