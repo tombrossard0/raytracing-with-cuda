@@ -1,4 +1,4 @@
-#include "engine.cuh"
+#include "engine.hpp"
 
 void Engine::initWindow() {
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {

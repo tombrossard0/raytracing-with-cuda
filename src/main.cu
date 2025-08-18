@@ -6,7 +6,7 @@
 #include <sstream>
 
 #include "camera.cuh"
-#include "engine.cuh"
+#include "engine.hpp"
 #include "ppm.hpp"
 #include "scene.hpp"
 #include "sphere.cuh"
