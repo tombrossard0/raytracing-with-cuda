@@ -88,33 +88,6 @@ void Engine::renderImGui(Scene *scene) {
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
-Engine::Engine(int w, int h, Scene *_scene)
-    : window_width(w), window_height(h), mouse({false, 0, 0, 0.2f}), running(true),
-      currentTime(SDL_GetTicks64()), deltaTime(0), lastFrameTime(currentTime), lastFPSTime(lastFrameTime),
-      frameCount(0), fps(0.0f), scene(_scene) {
-    this->mouse = {false, 0, 0, 0.2f};
-
-    this->initWindow();
-    this->initContext();
-    this->initImGUI();
-
-    if (scene) { scene->texture = createTexture(*scene); }
-}
-
-Engine::~Engine() {
-    // --- Cleanup Imgui ---
-    ImGui_ImplOpenGL3_Shutdown();
-    ImGui_ImplSDL2_Shutdown();
-    ImGui::DestroyContext();
-
-    // --- Cleanup Context ---
-    SDL_GL_DeleteContext(this->sdl_gl_context);
-
-    // --- Cleanup Window ---
-    SDL_DestroyWindow(this->window);
-    SDL_Quit();
-}
-
 void Engine::updateTime() {
     this->currentTime = SDL_GetTicks64();
     this->deltaTime = (this->currentTime - this->lastFrameTime) / 1000.0f; // seconds
@@ -205,4 +178,31 @@ void Engine::start() {
 
         SDL_GL_SwapWindow(window);
     }
+}
+
+Engine::Engine(int w, int h, Scene *_scene)
+    : window_width(w), window_height(h), mouse({false, 0, 0, 0.2f}), running(true),
+      currentTime(SDL_GetTicks64()), deltaTime(0), lastFrameTime(currentTime), lastFPSTime(lastFrameTime),
+      frameCount(0), fps(0.0f), scene(_scene) {
+    this->mouse = {false, 0, 0, 0.2f};
+
+    this->initWindow();
+    this->initContext();
+    this->initImGUI();
+
+    if (scene) { scene->texture = createTexture(*scene); }
+}
+
+Engine::~Engine() {
+    // --- Cleanup Imgui ---
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplSDL2_Shutdown();
+    ImGui::DestroyContext();
+
+    // --- Cleanup Context ---
+    SDL_GL_DeleteContext(this->sdl_gl_context);
+
+    // --- Cleanup Window ---
+    SDL_DestroyWindow(this->window);
+    SDL_Quit();
 }
