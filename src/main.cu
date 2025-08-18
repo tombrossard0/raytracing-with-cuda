@@ -6,6 +6,7 @@
 #include <sstream>
 
 #include "camera.cuh"
+#include "engine.cuh"
 #include "ppm.hpp"
 #include "scene.hpp"
 #include "sphere.cuh"
@@ -36,24 +37,8 @@ GLuint create_texture(int width, int height) {
     return tex;
 }
 
-int run_realtime(Scene &scene) {
-    if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-        std::cerr << "Failed to init SDL: " << SDL_GetError() << std::endl;
-        return 1;
-    }
-
-    SDL_Window *window = SDL_CreateWindow("CUDA Raytracer", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-                                          1920, 1080, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
-
-    if (!window) {
-        std::cerr << "Failed to create SDL window: " << SDL_GetError() << std::endl;
-        SDL_Quit();
-        return 1;
-    }
-
-    SDL_GLContext sdl_gl_context = SDL_GL_CreateContext(window);
-    SDL_GL_MakeCurrent(window, sdl_gl_context);
-    SDL_GL_SetSwapInterval(1); // vsync
+void run_realtime(Scene &scene) {
+    Engine engine{1920, 1080};
 
     // --- Init ImGui ---
     IMGUI_CHECKVERSION();
@@ -61,23 +46,18 @@ int run_realtime(Scene &scene) {
     ImGuiIO &io = ImGui::GetIO();
     (void)io;
     ImGui::StyleColorsDark();
-    ImGui_ImplSDL2_InitForOpenGL(window, sdl_gl_context);
+    ImGui_ImplSDL2_InitForOpenGL(engine.window, engine.sdl_gl_context);
     ImGui_ImplOpenGL3_Init("#version 330");
 
+    // --- Run Scene ---
     GLuint scene_texture = create_texture(scene.width, scene.height);
-    if (scene.renderSDL2(window, scene_texture)) { return 1; }
+    scene.renderSDL2(engine.window, scene_texture);
     glDeleteTextures(1, &scene_texture);
 
     // --- Cleanup Imgui ---
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplSDL2_Shutdown();
     ImGui::DestroyContext();
-
-    SDL_GL_DeleteContext(sdl_gl_context);
-    SDL_DestroyWindow(window);
-    SDL_Quit();
-
-    return 0;
 }
 
 int main(int argc, char **argv) {
@@ -130,7 +110,8 @@ int main(int argc, char **argv) {
 
     switch (mode) {
     case RUN_MODE::REALTIME:
-        return run_realtime(scene);
+        run_realtime(scene);
+        break;
     case RUN_MODE::GIF:
         std::cout << "Rendering video: " << nFrames << " frames, " << totalAngle << " degrees rotation, "
                   << width << "x" << height << "\n";

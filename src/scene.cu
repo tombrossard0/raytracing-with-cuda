@@ -31,6 +31,7 @@ Scene::Scene(int w, int h)
 }
 
 Scene::~Scene() {
+    cudaDeviceSynchronize(); // ensure all kernels are finished
     if (fb) { cudaFree(fb); };
     if (spheres) { cudaFree(spheres); };
 }
@@ -172,9 +173,7 @@ void Scene::processInputs(const Uint8 *keystate, float deltaTime, bool &running,
     if (running) { running = true; }
 }
 
-int Scene::renderSDL2(SDL_Window *window, GLuint &tex) {
-    bool running = true;
-
+void Scene::renderSDL2(SDL_Window *window, GLuint &tex) {
     SDL_Event event;
     Mouse mouse = {false, 0, 0, 0.2f};
 
@@ -183,6 +182,7 @@ int Scene::renderSDL2(SDL_Window *window, GLuint &tex) {
     int frameCount = 0;
     float fps = 0.0f;
 
+    bool running = true;
     while (running) {
         // --- Timing ---
         Uint32 currentTime = SDL_GetTicks();
@@ -224,8 +224,6 @@ int Scene::renderSDL2(SDL_Window *window, GLuint &tex) {
             SDL_SetWindowTitle(window, title.c_str());
         }
     }
-
-    return 0;
 }
 
 void Scene::renderPPMFrame(const std::string &filename) {
