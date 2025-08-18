@@ -139,12 +139,12 @@ void Engine::processInputs(Scene *scene) {
         Vec3 right = forward.cross(Vec3(0, 1, 0)).normalize();
         Vec3 up = right.cross(forward).normalize();
 
-        if (inputManager.isKeyDown(SDL_SCANCODE_W)) scene->center = scene->center + forward * speed;
-        if (inputManager.isKeyDown(SDL_SCANCODE_S)) scene->center = scene->center - forward * speed;
-        if (inputManager.isKeyDown(SDL_SCANCODE_A)) scene->center = scene->center - right * speed;
-        if (inputManager.isKeyDown(SDL_SCANCODE_D)) scene->center = scene->center + right * speed;
-        if (inputManager.isKeyDown(SDL_SCANCODE_SPACE)) scene->center = scene->center - up * speed;
-        if (inputManager.isKeyDown(SDL_SCANCODE_LCTRL)) scene->center = scene->center + up * speed;
+        if (inputManager.isKeyDown(SDL_SCANCODE_W)) scene->cam->center = scene->cam->center + forward * speed;
+        if (inputManager.isKeyDown(SDL_SCANCODE_S)) scene->cam->center = scene->cam->center - forward * speed;
+        if (inputManager.isKeyDown(SDL_SCANCODE_A)) scene->cam->center = scene->cam->center - right * speed;
+        if (inputManager.isKeyDown(SDL_SCANCODE_D)) scene->cam->center = scene->cam->center + right * speed;
+        if (inputManager.isKeyDown(SDL_SCANCODE_SPACE)) scene->cam->center = scene->cam->center - up * speed;
+        if (inputManager.isKeyDown(SDL_SCANCODE_LCTRL)) scene->cam->center = scene->cam->center + up * speed;
     }
 }
 
@@ -154,7 +154,8 @@ void Engine::start() {
         updateTime();
 
         if (scene) {
-            if (scene->focus) scene->renderFrame();
+            scene->renderFrame();
+            // if (scene->focus) scene->renderFrame(); // Render new scene frame only if active
             uploadFbToTexture(*scene);
         }
 

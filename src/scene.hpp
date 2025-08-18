@@ -14,7 +14,6 @@ class Scene {
     Vec3 *fb;
     Sphere *spheres;
     int nSpheres;
-    Vec3 center;
     float radius;
     float angleDeg;
     float yawDeg;
@@ -24,12 +23,14 @@ class Scene {
 
     bool focus;
 
+    Camera *cam;
+
     GLuint texture; // Only sets in realtime engine
 
     Scene(int w, int h);
     ~Scene();
 
-    Camera makeCamera();
+    void makeCamera();
     void renderFrame();
     void renderGUI(GLuint &tex);
 

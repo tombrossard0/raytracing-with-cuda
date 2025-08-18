@@ -61,11 +61,11 @@ __device__ Vec3 getEnvironmentLight(Ray ray) {
     return Vec3(0, 0, 0.5f);
 }
 
-__device__ Vec3 trace(Ray ray, unsigned int &seed, const Sphere *spheres, int nSpheres) {
+__device__ Vec3 trace(Ray ray, unsigned int &seed, const Sphere *spheres, int nSpheres, const Camera &cam) {
     Vec3 incomingLight = Vec3(0, 0, 0);
     Vec3 rayColour = Vec3(1, 1, 1);
 
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < cam.maxBounces; i++) {
         HitInfo hitInfo = calculateRayCollision(ray, nSpheres, spheres);
         if (hitInfo.didHit) {
             ray.origin = hitInfo.hitPoint;
@@ -94,13 +94,12 @@ __device__ void render_scene(unsigned int seed, Vec3 *fb_idx, Vec3 coords, Vec3 
     Ray ray = generateRay(u, v, cam);
 
     Vec3 totalIncomingLight = Vec3(0, 0, 0);
-    int numberOfRayPerPixel = 100;
 
-    for (int i = 0; i < numberOfRayPerPixel; i++) {
-        totalIncomingLight = totalIncomingLight + trace(ray, seed, spheres, nSpheres);
+    for (int i = 0; i < cam.numberOfRayPerPixel; i++) {
+        totalIncomingLight = totalIncomingLight + trace(ray, seed, spheres, nSpheres, cam);
     }
 
-    *fb_idx = totalIncomingLight / numberOfRayPerPixel;
+    *fb_idx = totalIncomingLight / cam.numberOfRayPerPixel;
 
     // HitInfo closesHit = calculateRayCollision(ray, nSpheres, spheres);
     // if (closesHit.didHit) {
