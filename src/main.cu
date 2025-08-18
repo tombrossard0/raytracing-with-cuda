@@ -8,8 +8,8 @@
 #include "camera.cuh"
 #include "ppm.hpp"
 #include "scene.hpp"
-#include "sphere.hpp"
-#include "vec3.hpp"
+#include "sphere.cuh"
+#include "vec3.cuh"
 
 #include "render.hpp"
 

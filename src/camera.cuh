@@ -1,5 +1,5 @@
 #pragma once
-#include "vec3.hpp"
+#include "vec3.cuh"
 
 #ifdef __CUDACC__
     #define HD __host__ __device__

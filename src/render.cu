@@ -1,9 +1,9 @@
-#include "vec3.hpp"
-#include "vec4.hpp"
+#include "vec3.cuh"
+#include "vec4.cuh"
 
 #include "camera.cuh"
-#include "ray.hpp"
-#include "sphere.hpp"
+#include "ray.cuh"
+#include "sphere.cuh"
 
 __device__ void computeCameraBasis(const Camera &cam, Vec3 &right, Vec3 &up) {
     right = cam.forward.cross(cam.up).normalize();
