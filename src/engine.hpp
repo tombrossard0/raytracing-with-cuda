@@ -21,6 +21,9 @@ class Engine {
     Mouse mouse;
 
     bool running;
+
+    Uint64 currentTime;
+    float deltaTime;
     Uint64 lastFrameTime;
     Uint64 lastFPSTime;
     int frameCount;
@@ -29,12 +32,14 @@ class Engine {
     Engine(int w, int h);
     ~Engine();
 
+    void updateTime();
+
     GLuint createTexture(int w, int h);
     void uploadFbToTexture(Scene &scene);
     void clearScreen();
     void renderImGui(Scene *scene);
 
-    void computeFPS(Uint64 currentTime);
+    void computeFPS();
 
   private:
     void initWindow();

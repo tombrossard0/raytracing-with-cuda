@@ -32,13 +32,11 @@ void run_realtime(Scene &scene) {
 
     while (engine.running) {
         // --- Timing ---
-        Uint64 currentTime = SDL_GetTicks64();
-        float deltaTime = (currentTime - engine.lastFrameTime) / 1000.0f; // seconds
-        engine.lastFrameTime = currentTime;
+        engine.updateTime();
 
         // --- Input ---
         const Uint8 *keystate = SDL_GetKeyboardState(NULL);
-        scene.processInputs(keystate, deltaTime, engine.running, &engine.event, engine.mouse);
+        scene.processInputs(keystate, engine.deltaTime, engine.running, &engine.event, engine.mouse);
 
         // --- CUDA render ---
         scene.renderFrame();
@@ -53,7 +51,7 @@ void run_realtime(Scene &scene) {
         SDL_GL_SwapWindow(engine.window);
 
         // --- FPS ---
-        engine.computeFPS(currentTime);
+        engine.computeFPS();
     }
 }
 

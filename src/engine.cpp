@@ -90,7 +90,8 @@ void Engine::renderImGui(Scene *scene) {
 
 Engine::Engine(int w, int h)
     : window_width(w), window_height(h), mouse({false, 0, 0, 0.2f}), running(true),
-      lastFrameTime(SDL_GetTicks()), lastFPSTime(lastFrameTime), frameCount(0), fps(0.0f) {
+      currentTime(SDL_GetTicks64()), deltaTime(0), lastFrameTime(currentTime), lastFPSTime(lastFrameTime),
+      frameCount(0), fps(0.0f) {
     this->mouse = {false, 0, 0, 0.2f};
 
     this->initWindow();
@@ -112,12 +113,18 @@ Engine::~Engine() {
     SDL_Quit();
 }
 
-void Engine::computeFPS(Uint64 currentTime) {
+void Engine::updateTime() {
+    this->currentTime = SDL_GetTicks64();
+    this->deltaTime = (this->currentTime - this->lastFrameTime) / 1000.0f; // seconds
+    this->lastFrameTime = this->currentTime;
+}
+
+void Engine::computeFPS() {
     this->frameCount++;
-    if (currentTime - this->lastFPSTime >= 1000) { // every second
-        this->fps = this->frameCount * 1000.0f / (currentTime - this->lastFPSTime);
+    if (this->currentTime - this->lastFPSTime >= 1000) { // every second
+        this->fps = this->frameCount * 1000.0f / (this->currentTime - this->lastFPSTime);
         this->frameCount = 0;
-        this->lastFPSTime = currentTime;
+        this->lastFPSTime = this->currentTime;
 
         std::string title = "CUDA Raytracer - FPS: " + std::to_string((int)this->fps);
         SDL_SetWindowTitle(this->window, title.c_str());
