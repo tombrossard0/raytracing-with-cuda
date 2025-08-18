@@ -43,7 +43,7 @@ class Engine {
 
     void computeFPS();
 
-    void processInputs(Scene &scene);
+    void processInputs(Scene *scene);
 
   private:
     void initWindow();

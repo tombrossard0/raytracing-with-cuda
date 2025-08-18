@@ -82,7 +82,7 @@ void Engine::renderImGui(Scene *scene) {
         ImGui::EndMainMenuBar();
     }
 
-    scene->renderGUI(scene->texture);
+    if (scene) { scene->renderGUI(scene->texture); }
 
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
@@ -131,7 +131,7 @@ void Engine::computeFPS() {
     }
 }
 
-void Engine::processInputs(Scene &scene) {
+void Engine::processInputs(Scene *scene) {
     const Uint8 *keystate = SDL_GetKeyboardState(NULL);
 
     while (SDL_PollEvent(&event)) {
@@ -147,40 +147,42 @@ void Engine::processInputs(Scene &scene) {
             mouse.mouseLook = false;
             SDL_SetRelativeMouseMode(SDL_FALSE);
         }
-        if (event.type == SDL_MOUSEMOTION && mouse.mouseLook) {
+        if (scene && event.type == SDL_MOUSEMOTION && mouse.mouseLook) {
             int dx = event.motion.xrel;
             int dy = -event.motion.yrel;
-            scene.yawDeg += dx * mouse.sensitivity;
-            scene.pitchDeg += dy * mouse.sensitivity;
-            if (scene.pitchDeg > 89.0f) scene.pitchDeg = 89.0f;
-            if (scene.pitchDeg < -89.0f) scene.pitchDeg = -89.0f;
+            scene->yawDeg += dx * mouse.sensitivity;
+            scene->pitchDeg += dy * mouse.sensitivity;
+            if (scene->pitchDeg > 89.0f) scene->pitchDeg = 89.0f;
+            if (scene->pitchDeg < -89.0f) scene->pitchDeg = -89.0f;
         }
-        if (event.type == SDL_MOUSEWHEEL) {
-            scene.radius -= event.wheel.y * 0.5f;
-            if (scene.radius < scene.minRadius) scene.radius = scene.minRadius;
-            if (scene.radius > scene.maxRadius) scene.radius = scene.maxRadius;
+        if (scene && event.type == SDL_MOUSEWHEEL) {
+            scene->radius -= event.wheel.y * 0.5f;
+            if (scene->radius < scene->minRadius) scene->radius = scene->minRadius;
+            if (scene->radius > scene->maxRadius) scene->radius = scene->maxRadius;
         }
         if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_ESCAPE) { running = false; }
     }
 
-    float speed = 10.5f * deltaTime; // movement speed
-    float yawRad = scene.yawDeg * M_PI / 180.0f;
-    float pitchRad = scene.pitchDeg * M_PI / 180.0f;
+    if (scene) {
+        float speed = 10.5f * deltaTime; // movement speed
+        float yawRad = scene->yawDeg * M_PI / 180.0f;
+        float pitchRad = scene->pitchDeg * M_PI / 180.0f;
 
-    // Forward vector
-    Vec3 forward(cosf(pitchRad) * cosf(yawRad), sinf(pitchRad), cosf(pitchRad) * sinf(yawRad));
-    forward = forward.normalize();
+        // Forward vector
+        Vec3 forward(cosf(pitchRad) * cosf(yawRad), sinf(pitchRad), cosf(pitchRad) * sinf(yawRad));
+        forward = forward.normalize();
 
-    // Right vector
-    Vec3 right = forward.cross(Vec3(0, 1, 0)).normalize();
+        // Right vector
+        Vec3 right = forward.cross(Vec3(0, 1, 0)).normalize();
 
-    // Up vector
-    Vec3 up = right.cross(forward).normalize();
+        // Up vector
+        Vec3 up = right.cross(forward).normalize();
 
-    if (keystate[SDL_SCANCODE_W]) scene.center = scene.center - forward * speed; // forward
-    if (keystate[SDL_SCANCODE_S]) scene.center = scene.center + forward * speed; // backward
-    if (keystate[SDL_SCANCODE_A]) scene.center = scene.center + right * speed;   // left
-    if (keystate[SDL_SCANCODE_D]) scene.center = scene.center - right * speed;   // right
-    if (keystate[SDL_SCANCODE_SPACE]) scene.center = scene.center - up * speed;  // up
-    if (keystate[SDL_SCANCODE_LCTRL]) scene.center = scene.center + up * speed;  // down
+        if (keystate[SDL_SCANCODE_W]) scene->center = scene->center - forward * speed; // forward
+        if (keystate[SDL_SCANCODE_S]) scene->center = scene->center + forward * speed; // backward
+        if (keystate[SDL_SCANCODE_A]) scene->center = scene->center + right * speed;   // left
+        if (keystate[SDL_SCANCODE_D]) scene->center = scene->center - right * speed;   // right
+        if (keystate[SDL_SCANCODE_SPACE]) scene->center = scene->center - up * speed;  // up
+        if (keystate[SDL_SCANCODE_LCTRL]) scene->center = scene->center + up * speed;  // down
+    }
 }

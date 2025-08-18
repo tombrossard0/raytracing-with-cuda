@@ -28,15 +28,17 @@ void run_realtime(Scene *scene) {
     Engine engine{1920, 1080};
 
     // --- Run Scene ---
-    scene->texture = engine.createTexture(scene->width, scene->height);
+    if (scene) { scene->texture = engine.createTexture(scene->width, scene->height); }
 
     while (engine.running) {
         engine.updateTime();
+        engine.processInputs(scene);
 
-        engine.processInputs(*scene);
-        scene->renderFrame();
+        if (scene) {
+            scene->renderFrame();
+            engine.uploadFbToTexture(*scene);
+        }
 
-        engine.uploadFbToTexture(*scene);
         engine.clearScreen();
         engine.renderImGui(scene);
         engine.computeFPS();
