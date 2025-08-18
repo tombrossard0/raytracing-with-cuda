@@ -19,7 +19,6 @@ class Engine {
     SDL_Window *window;
     SDL_GLContext sdl_gl_context;
 
-    SDL_Event event;
     Mouse mouse;
 
     bool running;

@@ -107,10 +107,11 @@ void Engine::computeFPS() {
 }
 
 void Engine::processInputs(Scene *scene) {
-    const Uint8 *keystate = SDL_GetKeyboardState(NULL);
+    SDL_Event event;
 
     while (SDL_PollEvent(&event)) {
         ImGui_ImplSDL2_ProcessEvent(&event);
+
         if (event.type == SDL_QUIT) running = false;
 
         if (event.type == SDL_MOUSEBUTTONDOWN && event.button.button == SDL_BUTTON_RIGHT) {
@@ -122,6 +123,8 @@ void Engine::processInputs(Scene *scene) {
             mouse.mouseLook = false;
             SDL_SetRelativeMouseMode(SDL_FALSE);
         }
+        if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_ESCAPE) { running = false; }
+
         if (scene && event.type == SDL_MOUSEMOTION && mouse.mouseLook) {
             int dx = event.motion.xrel;
             int dy = -event.motion.yrel;
@@ -135,8 +138,9 @@ void Engine::processInputs(Scene *scene) {
             if (scene->radius < scene->minRadius) scene->radius = scene->minRadius;
             if (scene->radius > scene->maxRadius) scene->radius = scene->maxRadius;
         }
-        if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_ESCAPE) { running = false; }
     }
+
+    const Uint8 *keystate = SDL_GetKeyboardState(NULL);
 
     if (scene) {
         float speed = 10.5f * deltaTime; // movement speed
@@ -164,8 +168,8 @@ void Engine::processInputs(Scene *scene) {
 
 void Engine::start() {
     while (running) {
-        updateTime();
         processInputs(scene);
+        updateTime();
 
         if (scene) {
             scene->renderFrame();
@@ -194,15 +198,15 @@ Engine::Engine(int w, int h, Scene *_scene)
 }
 
 Engine::~Engine() {
-    // --- Cleanup Imgui ---
+    // --- Shutdown Imgui ---
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplSDL2_Shutdown();
-    ImGui::DestroyContext();
 
     // --- Cleanup Context ---
+    ImGui::DestroyContext();
     SDL_GL_DeleteContext(this->sdl_gl_context);
 
-    // --- Cleanup Window ---
+    // --- Destroy Window ---
     SDL_DestroyWindow(this->window);
     SDL_Quit();
 }
