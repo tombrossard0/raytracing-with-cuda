@@ -20,4 +20,6 @@ struct Camera {
 
     HD Camera(Vec3 c, Vec3 p, Vec3 f, Vec3 u, float _fov, float _aspect)
         : center(c), position(p), forward(f), up(u), fov(_fov), aspect(_aspect) {}
+
+    void updateCameraPosition(float yawDeg, float pitchDeg, float radius);
 };

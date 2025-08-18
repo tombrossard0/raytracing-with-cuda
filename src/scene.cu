@@ -49,34 +49,15 @@ void Scene::makeCamera() {
 
     cam->center = Vec3(0, 0, 0);
 
-    // Convert to radians
-    float yawRad = yawDeg * M_PI / 180.0f;
-    float pitchRad = pitchDeg * M_PI / 180.0f;
+    cam->updateCameraPosition(yawDeg, pitchDeg, radius);
 
-    // Spherical coordinates around center
-    float x = cam->center.x + radius * cosf(pitchRad) * cosf(yawRad);
-    float y = cam->center.y + radius * sinf(pitchRad);
-    float z = cam->center.z + radius * cosf(pitchRad) * sinf(yawRad);
-
-    cam->position = Vec3(x, y, z);
-    cam->forward = (cam->center - cam->position).normalize();
     cam->up = Vec3(0, 1, 0);
     cam->fov = 90.0f;
     cam->aspect = float(width) / float(height);
 }
 
 void Scene::renderFrame() {
-    float yawRad = yawDeg * M_PI / 180.0f;
-    float pitchRad = pitchDeg * M_PI / 180.0f;
-    float x = cam->center.x + radius * cosf(pitchRad) * cosf(yawRad);
-    float y = cam->center.y + radius * sinf(pitchRad);
-    float z = cam->center.z + radius * cosf(pitchRad) * sinf(yawRad);
-
-    cam->position = Vec3(x, y, z);
-    cam->forward = (cam->center - cam->position).normalize();
-    cam->up = Vec3(0, 1, 0);
-    cam->fov = 90.0f;
-    cam->aspect = float(width) / float(height);
+    cam->updateCameraPosition(yawDeg, pitchDeg, radius);
     render(fb, width, height, spheres, nSpheres, cam);
 }
 
