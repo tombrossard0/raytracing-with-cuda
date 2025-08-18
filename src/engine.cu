@@ -28,13 +28,46 @@ void Engine::initContext() {
     SDL_GL_SetSwapInterval(1); // vsync
 }
 
+void Engine::initImGUI() {
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO &io = ImGui::GetIO();
+    (void)io;
+    ImGui::StyleColorsDark();
+    ImGui_ImplSDL2_InitForOpenGL(this->window, this->sdl_gl_context);
+    ImGui_ImplOpenGL3_Init("#version 330");
+}
+
+// --- OpenGL texture for CUDA framebuffer ---
+GLuint Engine::createTexture(int w, int h) {
+    GLuint texture;
+
+    glGenTextures(1, &texture);
+    glBindTexture(GL_TEXTURE_2D, texture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, w, h, 0, GL_RGB, GL_FLOAT, nullptr);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    return texture;
+}
+
 Engine::Engine(int w, int h) : window_width(w), window_height(h) {
     this->initWindow();
     this->initContext();
+    this->initImGUI();
 }
 
 Engine::~Engine() {
+    // --- Cleanup Imgui ---
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplSDL2_Shutdown();
+    ImGui::DestroyContext();
+
+    // --- Cleanup Context ---
     SDL_GL_DeleteContext(this->sdl_gl_context);
+
+    // --- Cleanup Window ---
     SDL_DestroyWindow(this->window);
     SDL_Quit();
 }

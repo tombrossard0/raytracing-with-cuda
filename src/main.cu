@@ -24,40 +24,13 @@ enum RUN_MODE {
     GIF,
 };
 
-GLuint create_texture(int width, int height) {
-    // --- OpenGL texture for CUDA framebuffer ---
-    GLuint tex;
-    glGenTextures(1, &tex);
-    glBindTexture(GL_TEXTURE_2D, tex);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, width, height, 0, GL_RGB, GL_FLOAT, nullptr);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glBindTexture(GL_TEXTURE_2D, 0);
-
-    return tex;
-}
-
 void run_realtime(Scene &scene) {
     Engine engine{1920, 1080};
 
-    // --- Init ImGui ---
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
-    ImGuiIO &io = ImGui::GetIO();
-    (void)io;
-    ImGui::StyleColorsDark();
-    ImGui_ImplSDL2_InitForOpenGL(engine.window, engine.sdl_gl_context);
-    ImGui_ImplOpenGL3_Init("#version 330");
-
     // --- Run Scene ---
-    GLuint scene_texture = create_texture(scene.width, scene.height);
+    GLuint scene_texture = engine.createTexture(scene.width, scene.height);
     scene.renderSDL2(engine.window, scene_texture);
     glDeleteTextures(1, &scene_texture);
-
-    // --- Cleanup Imgui ---
-    ImGui_ImplOpenGL3_Shutdown();
-    ImGui_ImplSDL2_Shutdown();
-    ImGui::DestroyContext();
 }
 
 int main(int argc, char **argv) {

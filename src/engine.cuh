@@ -17,7 +17,10 @@ class Engine {
     Engine(int w, int h);
     ~Engine();
 
+    GLuint createTexture(int w, int h);
+
   private:
     void initWindow();
     void initContext();
+    void initImGUI();
 };
