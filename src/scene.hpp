@@ -29,7 +29,7 @@ class Scene {
     void renderFrame();
     void renderGUI(GLuint &tex, bool &running);
     void processKeyboard(const Uint8 *keystate, float deltaTime);
-    int renderSDL2();
+    int renderSDL2(SDL_Window *window);
 
     void renderPPMFrame(const std::string &filename);
     void renderPPM(const std::string &filename = "output.ppm");

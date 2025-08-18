@@ -140,25 +140,7 @@ void Scene::processKeyboard(const Uint8 *keystate, float deltaTime) {
     if (keystate[SDL_SCANCODE_LCTRL]) center = center + up * speed;  // down
 }
 
-int Scene::renderSDL2() {
-    if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-        std::cerr << "Failed to init SDL: " << SDL_GetError() << std::endl;
-        return 1;
-    }
-
-    SDL_Window *window = SDL_CreateWindow("CUDA Raytracer", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-                                          1920, 1080, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
-
-    if (!window) {
-        std::cerr << "Failed to create SDL window: " << SDL_GetError() << std::endl;
-        SDL_Quit();
-        return 1;
-    }
-
-    SDL_GLContext gl_context = SDL_GL_CreateContext(window);
-    SDL_GL_MakeCurrent(window, gl_context);
-    SDL_GL_SetSwapInterval(1); // vsync
-
+int Scene::renderSDL2(SDL_Window *window) {
     // --- OpenGL texture for CUDA framebuffer ---
     GLuint tex;
     glGenTextures(1, &tex);
@@ -167,15 +149,6 @@ int Scene::renderSDL2() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glBindTexture(GL_TEXTURE_2D, 0);
-
-    // --- Init ImGui ---
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
-    ImGuiIO &io = ImGui::GetIO();
-    (void)io;
-    ImGui::StyleColorsDark();
-    ImGui_ImplSDL2_InitForOpenGL(window, gl_context);
-    ImGui_ImplOpenGL3_Init("#version 330");
 
     bool running = true;
     SDL_Event event;
@@ -261,16 +234,7 @@ int Scene::renderSDL2() {
         }
     }
 
-    // --- Cleanup ---
-    ImGui_ImplOpenGL3_Shutdown();
-    ImGui_ImplSDL2_Shutdown();
-    ImGui::DestroyContext();
-
     glDeleteTextures(1, &tex);
-    SDL_GL_DeleteContext(gl_context);
-    SDL_DestroyWindow(window);
-    SDL_Quit();
-
     return 0;
 }
 
