@@ -29,7 +29,50 @@ void run_realtime(Scene &scene) {
 
     // --- Run Scene ---
     GLuint scene_texture = engine.createTexture(scene.width, scene.height);
-    scene.renderSDL2(engine.window, scene_texture);
+
+    while (engine.running) {
+        // --- Timing ---
+        Uint64 currentTime = SDL_GetTicks64();
+        float deltaTime = (currentTime - engine.lastFrameTime) / 1000.0f; // seconds
+        engine.lastFrameTime = currentTime;
+
+        // --- Input ---
+        const Uint8 *keystate = SDL_GetKeyboardState(NULL);
+        scene.processInputs(keystate, deltaTime, engine.running, &engine.event, engine.mouse);
+
+        // --- CUDA render ---
+        scene.renderFrame();
+
+        // --- Upload framebuffer to OpenGL texture ---
+        glBindTexture(GL_TEXTURE_2D, scene_texture);
+        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, scene.width, scene.height, GL_RGB, GL_FLOAT, scene.fb);
+        glBindTexture(GL_TEXTURE_2D, 0);
+
+        // --- Clear screen ---
+        glClearColor(0, 0, 0, 1);
+        glClear(GL_COLOR_BUFFER_BIT);
+
+        // --- ImGui frame ---
+        scene.renderGUI(scene_texture, engine.running);
+
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+        SDL_GL_SwapWindow(engine.window);
+
+        // --- FPS ---
+        engine.frameCount++;
+        if (currentTime - engine.lastFPSTime >= 1000) { // every 1 second
+            engine.fps = engine.frameCount * 1000.0f / (currentTime - engine.lastFPSTime);
+            engine.frameCount = 0;
+            engine.lastFPSTime = currentTime;
+
+            std::string title = "CUDA Raytracer - FPS: " + std::to_string((int)engine.fps);
+            SDL_SetWindowTitle(engine.window, title.c_str());
+        }
+    }
+    // --- END Run scene ---
+
     glDeleteTextures(1, &scene_texture);
 }
 

@@ -173,59 +173,6 @@ void Scene::processInputs(const Uint8 *keystate, float deltaTime, bool &running,
     if (running) { running = true; }
 }
 
-void Scene::renderSDL2(SDL_Window *window, GLuint &tex) {
-    SDL_Event event;
-    Mouse mouse = {false, 0, 0, 0.2f};
-
-    Uint32 lastFrameTime = SDL_GetTicks();
-    Uint32 lastFPSTime = lastFrameTime;
-    int frameCount = 0;
-    float fps = 0.0f;
-
-    bool running = true;
-    while (running) {
-        // --- Timing ---
-        Uint32 currentTime = SDL_GetTicks();
-        float deltaTime = (currentTime - lastFrameTime) / 1000.0f; // seconds
-        lastFrameTime = currentTime;
-
-        // --- Input ---
-        const Uint8 *keystate = SDL_GetKeyboardState(NULL);
-        processInputs(keystate, deltaTime, running, &event, mouse);
-
-        // --- CUDA render ---
-        renderFrame();
-
-        // --- Upload framebuffer to OpenGL texture ---
-        glBindTexture(GL_TEXTURE_2D, tex);
-        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RGB, GL_FLOAT, fb);
-        glBindTexture(GL_TEXTURE_2D, 0);
-
-        // --- Clear screen ---
-        glClearColor(0, 0, 0, 1);
-        glClear(GL_COLOR_BUFFER_BIT);
-
-        // --- ImGui frame ---
-        renderGUI(tex, running);
-
-        ImGui::Render();
-        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
-        SDL_GL_SwapWindow(window);
-
-        // --- FPS ---
-        frameCount++;
-        if (currentTime - lastFPSTime >= 1000) { // every 1 second
-            fps = frameCount * 1000.0f / (currentTime - lastFPSTime);
-            frameCount = 0;
-            lastFPSTime = currentTime;
-
-            std::string title = "CUDA Raytracer - FPS: " + std::to_string((int)fps);
-            SDL_SetWindowTitle(window, title.c_str());
-        }
-    }
-}
-
 void Scene::renderPPMFrame(const std::string &filename) {
     Camera cam = makeCamera();
     render(fb, width, height, spheres, nSpheres, &cam);

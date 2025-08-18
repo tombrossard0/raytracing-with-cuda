@@ -52,7 +52,11 @@ GLuint Engine::createTexture(int w, int h) {
     return texture;
 }
 
-Engine::Engine(int w, int h) : window_width(w), window_height(h) {
+Engine::Engine(int w, int h)
+    : window_width(w), window_height(h), mouse({false, 0, 0, 0.2f}), running(true),
+      lastFrameTime(SDL_GetTicks()), lastFPSTime(lastFrameTime), frameCount(0), fps(0.0f) {
+    this->mouse = {false, 0, 0, 0.2f};
+
     this->initWindow();
     this->initContext();
     this->initImGUI();

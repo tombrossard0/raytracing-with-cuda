@@ -7,12 +7,23 @@
 #include <SDL2/SDL_video.h>
 #include <iostream>
 
+#include "mouse.hpp"
+
 class Engine {
   public:
     int window_width;
     int window_height;
     SDL_Window *window;
     SDL_GLContext sdl_gl_context;
+
+    SDL_Event event;
+    Mouse mouse;
+
+    bool running;
+    Uint64 lastFrameTime;
+    Uint64 lastFPSTime;
+    int frameCount;
+    float fps;
 
     Engine(int w, int h);
     ~Engine();

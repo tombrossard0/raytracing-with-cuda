@@ -30,7 +30,6 @@ class Scene {
     void renderFrame();
     void renderGUI(GLuint &tex, bool &running);
     void processInputs(const Uint8 *keystate, float deltaTime, bool &running, SDL_Event *event, Mouse &mouse);
-    void renderSDL2(SDL_Window *window, GLuint &tex);
 
     void renderPPMFrame(const std::string &filename);
     void renderPPM(const std::string &filename = "output.ppm");
