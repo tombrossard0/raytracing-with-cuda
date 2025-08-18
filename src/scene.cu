@@ -50,7 +50,7 @@ Camera Scene::makeCamera() {
 
     return Camera(camPos, forward, Vec3(0, 1, 0), // world up
                   90.0f,                          // fov
-                  float(width) / float(height), 1);
+                  float(width) / float(height));
 }
 
 void Scene::renderFrame() {
@@ -228,7 +228,8 @@ int Scene::renderSDL2() {
         glClear(GL_COLOR_BUFFER_BIT);
 
         // --- ImGui frame ---
-        renderGUI(tex);
+        renderGUI(tex); // TODO: change to not renderGUI inside the scene but render a scene inside GUI to
+                        // create multiple scenes
 
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
