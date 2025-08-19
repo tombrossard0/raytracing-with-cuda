@@ -57,7 +57,6 @@ void Scene::makeCamera() {
 }
 
 void Scene::renderFrame() {
-    cam->updateCameraPosition(yawDeg, pitchDeg, radius);
     render(fb, width, height, spheres, nSpheres, cam);
 }
 

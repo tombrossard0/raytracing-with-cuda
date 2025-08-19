@@ -145,6 +145,8 @@ void Engine::processInputs(Scene *scene) {
         if (inputManager.isKeyDown(SDL_SCANCODE_D)) scene->cam->center = scene->cam->center + right * speed;
         if (inputManager.isKeyDown(SDL_SCANCODE_SPACE)) scene->cam->center = scene->cam->center - up * speed;
         if (inputManager.isKeyDown(SDL_SCANCODE_LCTRL)) scene->cam->center = scene->cam->center + up * speed;
+
+        scene->cam->updateCameraPosition(scene->yawDeg, scene->pitchDeg, scene->radius);
     }
 }
 
