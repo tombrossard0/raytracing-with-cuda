@@ -22,6 +22,7 @@ enum RUN_MODE {
     REALTIME,
     PPM,
     GIF,
+    DRY_RUN,
 };
 
 void run_realtime(Scene *scene) {
@@ -44,6 +45,8 @@ int main(int argc, char **argv) {
             mode = RUN_MODE::GIF;
         } else if (arg == "--image") {
             mode = RUN_MODE::PPM;
+        } else if (arg == "--dry-run") {
+            mode = RUN_MODE::DRY_RUN;
         } else if (arg == "--frames" && i + 1 < argc) {
             nFrames = std::atoi(argv[++i]);
         } else if (arg == "--angle" && i + 1 < argc) {
@@ -63,6 +66,7 @@ int main(int argc, char **argv) {
         } else if (arg == "--help") {
             std::cout << "Usage: " << argv[0] << " [--image | --video] [options]\n"
                       << "Options:\n"
+                      << "  --dry-run             Does not render anything"
                       << "  --realtime            Render in realtime (default)\n"
                       << "  --image               Render single image\n"
                       << "  --video               Render multiple frames\n"
@@ -78,6 +82,8 @@ int main(int argc, char **argv) {
     Scene scene(width, height);
 
     switch (mode) {
+    case RUN_MODE::DRY_RUN:
+        break;
     case RUN_MODE::REALTIME:
         run_realtime(&scene);
         break;
