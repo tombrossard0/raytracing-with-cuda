@@ -1,9 +1,7 @@
 #pragma once
 
-#include "camera.cuh"
-#include "scene.hpp"
-#include "sphere.cuh"
-#include "vec3.cuh"
+#include "shaders/grid.cuh"
+#include "shaders/tracer.cuh"
 
 const int MAX_SPHERES = 64;
 

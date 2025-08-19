@@ -12,7 +12,7 @@
 #include "sphere.cuh"
 #include "vec3.cuh"
 
-#include "render.hpp"
+#include "render.cuh"
 
 #include "imgui.h"
 #include "imgui_impl_opengl3.h"
