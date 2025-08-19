@@ -11,11 +11,11 @@ __device__ void computeCameraBasis(const Camera &cam, Vec3 &right, Vec3 &up) {
     up = right.cross(cam.forward).normalize();
 }
 
-__device__ HitInfo calculateRayCollision(Ray ray, int nSphere, const Sphere *spheres) {
+__device__ HitInfo calculateRayCollision(Ray ray, const SceneProperties &sp) {
     HitInfo closestHit{};
 
-    for (int i = 0; i < nSphere; i++) {
-        const Sphere &sphere = spheres[i];
+    for (int i = 0; i < sp.nSpheres; i++) {
+        const Sphere &sphere = sp.spheres[i];
         HitInfo hitInfo = sphere.intersect(ray);
 
         if (hitInfo.didHit && hitInfo.dst < closestHit.dst || hitInfo.didHit && !closestHit.didHit) {
@@ -59,15 +59,16 @@ __device__ Vec3 randomHemisphereDirection(Vec3 normal, unsigned int &seed) {
 }
 
 __device__ Vec3 getEnvironmentLight(Ray ray) {
-    return Vec3(0, 0, 0.5f);
+    // return Vec3(0, 0, 0.5f);
+    return Vec3(0.5f * (ray.dir.x + 1.0f), 0.5f * (ray.dir.y + 1.0f), 0.5f * (ray.dir.z + 1.0f));
 }
 
-__device__ Vec3 trace(Ray ray, unsigned int &seed, const Sphere *spheres, int nSpheres, const Camera &cam) {
+__device__ Vec3 trace(Ray ray, unsigned int &seed, const SceneProperties &sp) {
     Vec3 incomingLight = Vec3(0, 0, 0);
     Vec3 rayColour = Vec3(1, 1, 1);
 
-    for (int i = 0; i < cam.maxBounces; i++) {
-        HitInfo hitInfo = calculateRayCollision(ray, nSpheres, spheres);
+    for (int i = 0; i < sp.cam->maxBounces; i++) {
+        HitInfo hitInfo = calculateRayCollision(ray, sp);
         if (hitInfo.didHit) {
             ray.origin = hitInfo.hitPoint;
             ray.dir = randomHemisphereDirection(hitInfo.normal, seed);
@@ -85,7 +86,7 @@ __device__ Vec3 trace(Ray ray, unsigned int &seed, const Sphere *spheres, int nS
     return incomingLight;
 }
 
-__device__ void render_pixel(unsigned int &seed, unsigned int idx, Vec3 coords, SceneProperties &sp) {
+__device__ void render_pixel(unsigned int &seed, unsigned int idx, Vec3 coords, const SceneProperties &sp) {
     // Normalize and centerize coordinates between [-0.5, 0.5]
     float u = (coords.x - sp.width / 2.0f) / sp.width;
     float v = (coords.y - sp.height / 2.0f) / sp.height;
@@ -94,33 +95,18 @@ __device__ void render_pixel(unsigned int &seed, unsigned int idx, Vec3 coords, 
     Ray ray = generateRay(u, v, *sp.cam);
 
     Vec3 totalIncomingLight = Vec3(0, 0, 0);
-
     for (int i = 0; i < sp.cam->numberOfRayPerPixel; i++) {
-        totalIncomingLight = totalIncomingLight + trace(ray, seed, sp.spheres, sp.nSpheres, *sp.cam);
+        totalIncomingLight = totalIncomingLight + trace(ray, seed, sp);
     }
 
     sp.fb[idx] = totalIncomingLight / sp.cam->numberOfRayPerPixel;
-
-    // HitInfo closesHit = calculateRayCollision(ray, nSpheres, spheres);
-    // if (closesHit.didHit) {
-    //     // *fb_idx = randomHemisphereDirection(closesHit.normal, &seed);
-    //     *fb_idx = Vec3(closesHit.material.colour.x, closesHit.material.colour.y,
-    //     closesHit.material.colour.z);
-    // } else {
-    //     // Map direction [-1,1] to [0,1] for visualization
-    //     *fb_idx = Vec3(
-    //         0.5f * (ray.dir.x + 1.0f),
-    //         0.5f * (ray.dir.y + 1.0f),
-    //         0.5f * (ray.dir.z + 1.0f)
-    //     );
-    // }
 }
 
 // __device__ void render_gradient(Vec3 *fb_idx, float u, float v) {
 //     *fb_idx = Vec3(u + 0.5, u + 0.5, u + 0.5);
 // }
 
-__global__ void render_scene(SceneProperties sp) {
+__global__ void render_scene(const SceneProperties sp) {
     unsigned int x = blockIdx.x * blockDim.x + threadIdx.x;
     unsigned int y = blockIdx.y * blockDim.y + threadIdx.y;
     if (x >= sp.width || y >= sp.height) return;
