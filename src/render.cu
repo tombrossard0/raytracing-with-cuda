@@ -64,8 +64,8 @@ __device__ Vec3 getEnvironmentLight(Ray ray) {
 }
 
 __device__ Vec3 trace(Ray ray, unsigned int &seed, const SceneProperties &sp) {
-    Vec3 incomingLight = Vec3(0, 0, 0);
-    Vec3 rayColour = Vec3(1, 1, 1);
+    Vec3 incomingLight = 0; // No color
+    Vec3 rayColour = 1;     // White
 
     for (int i = 0; i < sp.cam->maxBounces; i++) {
         HitInfo hitInfo = calculateRayCollision(ray, sp);
@@ -75,10 +75,10 @@ __device__ Vec3 trace(Ray ray, unsigned int &seed, const SceneProperties &sp) {
 
             RayTracingMaterial material = hitInfo.material;
             Vec3 emittedLight = material.emissionColour * material.emissionStrength;
-            incomingLight = incomingLight + emittedLight * rayColour;
-            rayColour = rayColour * material.colour;
+            incomingLight += emittedLight * rayColour;
+            rayColour *= material.colour; // Absorb light
         } else {
-            incomingLight = incomingLight + getEnvironmentLight(ray) * rayColour;
+            incomingLight += getEnvironmentLight(ray) * rayColour;
             break;
         }
     }
