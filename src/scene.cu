@@ -14,8 +14,8 @@
 #include <sstream>
 
 Scene::Scene(int w, int h)
-    : width(w), height(h), fb(nullptr), spheres(nullptr), nSpheres(0), radius(5.0f), yawDeg(0.0f),
-      pitchDeg(0.0f), minRadius(1.0f), maxRadius(20.0), texture(0) {
+    : width(w), height(h), fb(nullptr), spheres(nullptr), nSpheres(0), radius(15.0f), yawDeg(64.0f),
+      pitchDeg(-16.0f), minRadius(1.0f), maxRadius(20.0), texture(0) {
     makeCamera();
 
     size_t fb_size = width * height * sizeof(Vec3);
@@ -112,6 +112,7 @@ void Scene::renderGUI(GLuint &tex) {
 }
 
 void Scene::renderPPMFrame(const std::string &filename) {
+    cam->numberOfRayPerPixel = 1000;
     render(0, 0);
     savePPM(filename, fb, width, height);
 }
