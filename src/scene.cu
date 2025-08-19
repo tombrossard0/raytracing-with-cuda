@@ -22,14 +22,16 @@ Scene::Scene(int w, int h)
     cudaMallocManaged(&fb, fb_size);
 
     cudaMallocManaged(&spheres, MAX_SPHERES * sizeof(Sphere));
-    nSpheres = 4;
-    spheres[0] = Sphere(cam->center + Vec3(-4.418, -5.648, -3), 5, Vec3(1, 1, 1));
+    nSpheres = 6;
+    spheres[0] = Sphere(cam->center + Vec3(-17.218, -13.568, -3.990), 11.07, Vec3(1, 1, 1));
     spheres[0].material.emissionColour = Vec3(1, 1, 1);
     spheres[0].material.emissionStrength = 1;
 
-    spheres[1] = Sphere(cam->center + Vec3(0.92, 0, -3), .3f, Vec3(0, 1, 0));
-    spheres[2] = Sphere(cam->center + Vec3(2.23, 1.05, -6.13), .4f, Vec3(0, 0, 1));
-    spheres[3] = Sphere(cam->center + Vec3(1.59, 5.28, -3.850), 5, Vec3(1, 0, 0));
+    spheres[1] = Sphere(cam->center + Vec3(0.92, -0.71, -3), .73f, Vec3(0, 1, 0));
+    spheres[2] = Sphere(cam->center + Vec3(2.23, -0.81, -6.13), .88f, Vec3(0, 0, 1));
+    spheres[3] = Sphere(cam->center + Vec3(1.59, 23.14, -3.850), 23.05, Vec3(1, 1, 1));
+    spheres[4] = Sphere(cam->center + Vec3(0.16, -1.52, -1.07), 1, Vec3(1, 0, 0));
+    spheres[5] = Sphere(cam->center + Vec3(-2.3, -0.8, -2.69), 1, Vec3(1, 1, 0.45));
 }
 
 Scene::~Scene() {
