@@ -69,4 +69,6 @@ struct Vec3 {
     inline HD bool operator==(const float &v) const { return x == v && y == v && z == v; }
     inline HD bool operator!=(const Vec3 &b) const { return x != b.x && y != b.y && z != b.z; }
     inline HD bool operator!=(const float &v) const { return x != v && y != v && z != v; }
+
+    inline HD bool operator<(const Vec3 &b) const { return x < b.x && y < b.y && z < b.z; }
 };
