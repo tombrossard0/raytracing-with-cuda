@@ -75,8 +75,8 @@ void Scene::renderGUI(GLuint &tex) {
     ImGui::SliderFloat("Yaw", &yawDeg, -180.0f, 180.0f);
     ImGui::SliderFloat("Pitch", &pitchDeg, -89.0f, 89.0f);
     ImGui::DragFloat3("Center", &cam->center.x, 0.01f);
-    ImGui::DragInt("Max Bounces", &cam->maxBounces);
-    ImGui::DragInt("Number of ray per pixel", &cam->numberOfRayPerPixel);
+    ImGui::DragInt("Max Bounces", &cam->maxBounces, 1, 0, 1000);
+    ImGui::DragInt("Number of ray per pixel", &cam->numberOfRayPerPixel, 1, 0, 1000);
     ImGui::End();
 
     ImGui::Begin("Spheres");
