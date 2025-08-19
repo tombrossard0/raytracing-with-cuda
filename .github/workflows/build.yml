@@ -19,14 +19,8 @@ jobs:
             - name: Install gcc-10 and SDL2
               run: |
                    sudo apt-get update
-                   sudo apt-get install -y gcc-10 build-essential libsdl2-dev
-
-            - name: Cache build
-              uses: actions/cache@v3
-              with:
-                path: build
-                key: ${{ runner.os }}-make-${{ hashFiles('src/**/*.cpp', 'src/**/*.cu', 'imgui/**/*.cpp', 'Makefile') }}
-                restore-keys: ${{ runner.os }}-make-
+                   sudo apt-get install -y gcc-10 build-essential libsdl2-dev \
+                   nvidia-cuda-toolkit
 
             - name: Compile and run
               run: make run-video
