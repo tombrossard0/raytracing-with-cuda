@@ -47,7 +47,7 @@ void Scene::makeCamera() {
     cudaMallocManaged(&cam, sizeof(Camera));
 
     cam->maxBounces = 10;
-    cam->numberOfRayPerPixel = 100;
+    cam->numberOfRayPerPixel = 10;
 
     cam->center = Vec3(0, 0, 0);
 
@@ -58,9 +58,9 @@ void Scene::makeCamera() {
     cam->aspect = float(width) / float(height);
 }
 
-void Scene::renderFrame() {
+void Scene::renderFrame(int i, int j) {
     cam->updateCameraPosition(yawDeg, pitchDeg, radius);
-    render();
+    render(i, j);
 }
 
 void Scene::renderGUI(GLuint &tex) {
@@ -112,7 +112,7 @@ void Scene::renderGUI(GLuint &tex) {
 }
 
 void Scene::renderPPMFrame(const std::string &filename) {
-    render();
+    render(0, 0);
     savePPM(filename, fb, width, height);
 }
 
@@ -133,13 +133,14 @@ void Scene::renderGIF(int nFrames, float totalAngle) {
     std::cout << "Video render complete!" << std::endl;
 }
 
-void Scene::render() {
+void Scene::render(int numRenderedFramesA, int numRenderedFramesB) {
     dim3 threads(16, 16);
     dim3 blocks((width + 15) / 16, (height + 15) / 16);
 
     // Note: the kernel runs on the GPU, which cannot directly access host
     // memory unless we use managed memory or cudaMemcpy
-    SceneProperties sceneProperties{fb, width, height, spheres, nSpheres, cam};
+    SceneProperties sceneProperties{
+        fb, width, height, spheres, nSpheres, cam, numRenderedFramesA, numRenderedFramesB};
 
     render_scene<<<blocks, threads>>>(sceneProperties);
 

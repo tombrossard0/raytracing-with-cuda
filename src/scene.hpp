@@ -14,6 +14,9 @@ struct SceneProperties {
     Sphere *spheres;
     int nSpheres;
     Camera *cam;
+
+    int numRenderedFramesA;
+    int numRenderedFramesB;
 };
 
 class Scene {
@@ -39,12 +42,12 @@ class Scene {
     ~Scene();
 
     void makeCamera();
-    void renderFrame();
+    void renderFrame(int i, int j);
     void renderGUI(GLuint &tex);
 
     void renderPPMFrame(const std::string &filename);
     void renderPPM(const std::string &filename = "output.ppm");
     void renderGIF(int nFrames, float totalAngle);
 
-    void render();
+    void render(int numRenderedFramesA, int numRenderedFramesB);
 };

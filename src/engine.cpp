@@ -149,12 +149,16 @@ void Engine::processInputs(Scene *scene) {
 }
 
 void Engine::start() {
+    unsigned int i = 0;
+    unsigned int j = 0;
     while (running) {
         processInputs(scene);
         updateTime();
 
         if (scene) {
-            scene->renderFrame();
+            scene->renderFrame(i, ++j);
+
+            if (j > 200) { i += 1; }
             // if (scene->focus) scene->renderFrame(); // Render new scene frame only if active
             uploadFbToTexture(*scene);
         }

@@ -8,7 +8,6 @@ __device__ Vec3 __forceinline__ trace(Ray ray, unsigned int &seed, const ScenePr
     Vec3 incomingLight = 0; // No color
     Vec3 rayColour = 1;     // White
 
-#pragma unroll
     for (int i = 0; i < sp.cam->maxBounces; i++) {
         HitInfo hitInfo = calculateRayCollision(ray, sp);
 
