@@ -63,12 +63,15 @@ __device__ Vec3 getEnvironmentLight(Ray ray) {
     return Vec3(0.5f * (ray.dir.x + 1.0f), 0.5f * (ray.dir.y + 1.0f), 0.5f * (ray.dir.z + 1.0f));
 }
 
-__device__ Vec3 trace(Ray ray, unsigned int &seed, const SceneProperties &sp) {
+__device__ Vec3 trace(Ray ray, unsigned int &seed, const SceneProperties &sp, float &dst) {
     Vec3 incomingLight = 0; // No color
     Vec3 rayColour = 1;     // White
 
     for (int i = 0; i < sp.cam->maxBounces; i++) {
         HitInfo hitInfo = calculateRayCollision(ray, sp);
+
+        if (i == 0 && hitInfo.didHit) { dst = hitInfo.dst; }
+
         if (hitInfo.didHit) {
             ray.origin = hitInfo.hitPoint;
             ray.dir = randomHemisphereDirection(hitInfo.normal, seed);
@@ -86,6 +89,25 @@ __device__ Vec3 trace(Ray ray, unsigned int &seed, const SceneProperties &sp) {
     return incomingLight;
 }
 
+__device__ bool intersectGrid(const Ray &ray, float &t) {
+    if (ray.dir.y == 0) return false; // parallel to grid plane
+
+    t = -ray.origin.y / ray.dir.y; // intersection with y=0 plane
+    return t > 0;
+}
+
+__device__ Vec3 gridColor(const Vec3 &point, float gridSize = 1.0f, float lineWidth = 0.02f) {
+    // Compute distance to nearest grid line
+    float fx = fmodf(fabsf(point.x), gridSize);
+    float fz = fmodf(fabsf(point.z), gridSize);
+
+    // If the point is close enough to a grid line, draw it
+    if (fx < lineWidth || fx > gridSize - lineWidth || fz < lineWidth || fz > gridSize - lineWidth)
+        return 0.8f; // grid line color
+    else
+        return 0; // background color (no square fill)
+}
+
 __device__ void render_pixel(unsigned int &seed, unsigned int idx, Vec3 coords, const SceneProperties &sp) {
     // Normalize and centerize coordinates between [-0.5, 0.5]
     float u = (coords.x - sp.width / 2.0f) / sp.width;
@@ -94,12 +116,26 @@ __device__ void render_pixel(unsigned int &seed, unsigned int idx, Vec3 coords, 
     // Generate a ray from the camera through pixel (u,v)
     Ray ray = generateRay(u, v, *sp.cam);
 
-    Vec3 totalIncomingLight = Vec3(0, 0, 0);
-    for (int i = 0; i < sp.cam->numberOfRayPerPixel; i++) {
-        totalIncomingLight = totalIncomingLight + trace(ray, seed, sp);
+    Vec3 totalIncomingLight = 0;
+    float dst = -1;
+    for (int i = 0; i < sp.cam->numberOfRayPerPixel; i++) { totalIncomingLight += trace(ray, seed, sp, dst); }
+
+    totalIncomingLight /= sp.cam->numberOfRayPerPixel;
+
+    // Generate an infinite grid
+    float tGrid;
+    if (intersectGrid(ray, tGrid)) {
+        Vec3 hitPoint = ray.origin + ray.dir * tGrid;
+        Vec3 gridCol = gridColor(hitPoint, 1.0f, 0.02f);
+
+        float maxGridDst = 50.f;
+        if (gridCol != 0 && (dst > -1 && dst > tGrid || dst == -1) && tGrid < maxGridDst) {
+            float alpha = 1 - tGrid / maxGridDst;
+            totalIncomingLight = totalIncomingLight * (1.f - alpha) + gridCol * alpha;
+        }
     }
 
-    sp.fb[idx] = totalIncomingLight / sp.cam->numberOfRayPerPixel;
+    sp.fb[idx] = totalIncomingLight;
 }
 
 // __device__ void render_gradient(Vec3 *fb_idx, float u, float v) {

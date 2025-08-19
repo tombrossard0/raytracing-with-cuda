@@ -64,4 +64,9 @@ struct Vec3 {
         float len = sqrtf(x * x + y * y + z * z);
         return len > 0 ? (*this) / len : Vec3(0, 0, 0);
     }
+
+    inline HD bool operator==(const Vec3 &b) const { return x == b.x && y == b.y && z == b.z; }
+    inline HD bool operator==(const float &v) const { return x == v && y == v && z == v; }
+    inline HD bool operator!=(const Vec3 &b) const { return x != b.x && y != b.y && z != b.z; }
+    inline HD bool operator!=(const float &v) const { return x != v && y != v && z != v; }
 };
