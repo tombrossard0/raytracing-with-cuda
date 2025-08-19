@@ -8,6 +8,14 @@
 #include <SDL2/SDL_opengl.h>
 #include <string>
 
+struct SceneProperties {
+    Vec3 *fb;
+    int width, height;
+    Sphere *spheres;
+    int nSpheres;
+    Camera *cam;
+};
+
 class Scene {
   public:
     int width, height;
@@ -37,4 +45,6 @@ class Scene {
     void renderPPMFrame(const std::string &filename);
     void renderPPM(const std::string &filename = "output.ppm");
     void renderGIF(int nFrames, float totalAngle);
+
+    void render();
 };

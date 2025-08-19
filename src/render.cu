@@ -3,6 +3,7 @@
 
 #include "camera.cuh"
 #include "ray.cuh"
+#include "scene.hpp"
 #include "sphere.cuh"
 
 __device__ void computeCameraBasis(const Camera &cam, Vec3 &right, Vec3 &up) {
@@ -84,22 +85,21 @@ __device__ Vec3 trace(Ray ray, unsigned int &seed, const Sphere *spheres, int nS
     return incomingLight;
 }
 
-__device__ void render_scene(unsigned int seed, Vec3 *fb_idx, Vec3 coords, Vec3 aspect, const Camera &cam,
-                             const Sphere *spheres, int nSpheres) {
+__device__ void render_pixel(unsigned int &seed, unsigned int idx, Vec3 coords, SceneProperties &sp) {
     // Normalize and centerize coordinates between [-0.5, 0.5]
-    float u = (coords.x - aspect.x / 2.0f) / aspect.x;
-    float v = (coords.y - aspect.y / 2.0f) / aspect.y;
+    float u = (coords.x - sp.width / 2.0f) / sp.width;
+    float v = (coords.y - sp.height / 2.0f) / sp.height;
 
     // Generate a ray from the camera through pixel (u,v)
-    Ray ray = generateRay(u, v, cam);
+    Ray ray = generateRay(u, v, *sp.cam);
 
     Vec3 totalIncomingLight = Vec3(0, 0, 0);
 
-    for (int i = 0; i < cam.numberOfRayPerPixel; i++) {
-        totalIncomingLight = totalIncomingLight + trace(ray, seed, spheres, nSpheres, cam);
+    for (int i = 0; i < sp.cam->numberOfRayPerPixel; i++) {
+        totalIncomingLight = totalIncomingLight + trace(ray, seed, sp.spheres, sp.nSpheres, *sp.cam);
     }
 
-    *fb_idx = totalIncomingLight / cam.numberOfRayPerPixel;
+    sp.fb[idx] = totalIncomingLight / sp.cam->numberOfRayPerPixel;
 
     // HitInfo closesHit = calculateRayCollision(ray, nSpheres, spheres);
     // if (closesHit.didHit) {
@@ -116,28 +116,17 @@ __device__ void render_scene(unsigned int seed, Vec3 *fb_idx, Vec3 coords, Vec3 
     // }
 }
 
-__device__ void render_gradient(Vec3 *fb_idx, float u, float v) {
-    *fb_idx = Vec3(u + 0.5, u + 0.5, u + 0.5);
-}
+// __device__ void render_gradient(Vec3 *fb_idx, float u, float v) {
+//     *fb_idx = Vec3(u + 0.5, u + 0.5, u + 0.5);
+// }
 
-__global__ void render_kernel(Vec3 *fb, int width, int height, Sphere *spheres, int nSpheres, Camera cam) {
-    int x = blockIdx.x * blockDim.x + threadIdx.x;
-    int y = blockIdx.y * blockDim.y + threadIdx.y;
-    if (x >= width || y >= height) return;
+__global__ void render_scene(SceneProperties sp) {
+    unsigned int x = blockIdx.x * blockDim.x + threadIdx.x;
+    unsigned int y = blockIdx.y * blockDim.y + threadIdx.y;
+    if (x >= sp.width || y >= sp.height) return;
 
-    unsigned int seed = 1469598103u ^ (unsigned int)x * 16777619u ^ (unsigned int)y;
-    int idx = y * width + x;
+    unsigned int seed = 1469598103u ^ x * 16777619u ^ y;
+    unsigned int idx = y * sp.width + x;
 
-    render_scene(seed, &fb[idx], Vec3(x, y, 0), Vec3(width, height, 0), cam, spheres, nSpheres);
-}
-
-void render(Vec3 *fb, int width, int height, Sphere *spheres, int nSpheres, Camera *cam) {
-    dim3 threads(16, 16);
-    dim3 blocks((width + 15) / 16, (height + 15) / 16);
-
-    // Note: the kernel runs on the GPU, which cannot directly access host
-    // memory unless we use managed memory or cudaMemcpy
-    render_kernel<<<blocks, threads>>>(fb, width, height, spheres, nSpheres, *cam);
-
-    cudaDeviceSynchronize();
+    render_pixel(seed, idx, Vec3(x, y, 0), sp);
 }

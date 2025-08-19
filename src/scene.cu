@@ -57,7 +57,8 @@ void Scene::makeCamera() {
 }
 
 void Scene::renderFrame() {
-    render(fb, width, height, spheres, nSpheres, cam);
+    cam->updateCameraPosition(yawDeg, pitchDeg, radius);
+    render();
 }
 
 void Scene::renderGUI(GLuint &tex) {
@@ -109,7 +110,7 @@ void Scene::renderGUI(GLuint &tex) {
 }
 
 void Scene::renderPPMFrame(const std::string &filename) {
-    render(fb, width, height, spheres, nSpheres, cam);
+    render();
     savePPM(filename, fb, width, height);
 }
 
@@ -128,4 +129,17 @@ void Scene::renderGIF(int nFrames, float totalAngle) {
         std::cout << "Saved " << filename.str() << std::endl;
     }
     std::cout << "Video render complete!" << std::endl;
+}
+
+void Scene::render() {
+    dim3 threads(16, 16);
+    dim3 blocks((width + 15) / 16, (height + 15) / 16);
+
+    // Note: the kernel runs on the GPU, which cannot directly access host
+    // memory unless we use managed memory or cudaMemcpy
+    SceneProperties sceneProperties{fb, width, height, spheres, nSpheres, cam};
+
+    render_scene<<<blocks, threads>>>(sceneProperties);
+
+    cudaDeviceSynchronize();
 }
