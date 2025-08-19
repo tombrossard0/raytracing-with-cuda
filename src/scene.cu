@@ -122,8 +122,9 @@ void Scene::renderPPM(const std::string &filename) {
 void Scene::renderGIF(int nFrames, float totalAngle) {
     for (int i = 0; i < nFrames; i++) {
         yawDeg = (totalAngle / nFrames) * i;
+        cam->updateCameraPosition(yawDeg, pitchDeg, radius);
         std::ostringstream filename;
-        filename << "frame_" << std::setw(3) << std::setfill('0') << i << ".ppm";
+        filename << "build/frame_" << std::setw(3) << std::setfill('0') << i << ".ppm";
         renderPPMFrame(filename.str());
         std::cout << "Saved " << filename.str() << std::endl;
     }

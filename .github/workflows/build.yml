@@ -21,5 +21,18 @@ jobs:
                    sudo apt-get update
                    sudo apt-get install -y gcc-10 build-essential libsdl2-dev
 
-            - name: Compile
-              run: make run --dry-run
+            - name: Cache build
+              uses: actions/cache@v3
+              with:
+                path: build
+                key: ${{ runner.os }}-make-${{ hashFiles('src/**/*.cpp', 'src/**/*.cu', 'imgui/**/*.cpp', 'Makefile') }}
+                restore-keys: ${{ runner.os }}-make-
+
+            - name: Compile and run
+              run: make run-video
+
+            - name: Upload artifact (build/output.gif)
+              uses: actions/upload-artifact@v3
+              with:
+                name: build-artifacts
+                path: build/output.gif

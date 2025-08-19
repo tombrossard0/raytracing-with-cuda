@@ -31,7 +31,7 @@ IMGUI_OBJ = $(patsubst %.cpp,$(BUILD_DIR)/%.o,$(IMGUI_SRC))
 
 # Target
 TARGET = $(BUILD_DIR)/raytracer
-OUTPUT_NAME = output
+OUTPUT_NAME = $(BUILD_DIR)/output
 
 .PHONY: all clean run run-image run-video
 
@@ -63,12 +63,12 @@ run: all
 	./$(TARGET)
 
 run-image: all
-	./$(TARGET) --image
+	./$(TARGET) --image --output $(OUTPUT_NAME).ppm
 	convert $(OUTPUT_NAME).ppm $(OUTPUT_NAME).png
 
 run-video: all
 	./$(TARGET) --video
-	convert -delay 5 -loop 0 frame_*.ppm camera_rotation.gif
+	convert -delay 5 -loop 0 build/frame_*.ppm build/camera_rotation.gif
 
 # Clean
 clean:
