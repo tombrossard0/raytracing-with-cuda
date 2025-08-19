@@ -70,6 +70,9 @@ run-video: all
 	./$(TARGET) --video
 	convert -delay 5 -loop 0 build/frame_*.ppm build/camera_rotation.gif
 
+dry-run: all
+	./$(TARGET) --dry-run
+
 # Clean
 clean:
 	rm -rf $(BUILD_DIR) $(OUTPUT_NAME).* frame_*
