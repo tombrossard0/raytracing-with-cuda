@@ -16,10 +16,10 @@ jobs:
               with:
                  submodules: recursive
 
-            - name: Install gcc-10 and SDL2
+            - name: Install dependencies
               run: |
                    sudo apt-get update
-                   sudo apt-get install -y gcc-10 build-essential libsdl2-dev \
+                   sudo apt-get install -y gcc-10 g++-10 build-essential libsdl2-dev \
                    nvidia-cuda-toolkit
 
             - name: Compile and run
