@@ -20,17 +20,30 @@ template <typename T> __host__ __device__ T lerp(const T &a, const T &b, float t
     return a + t * (b - a);
 }
 
+__device__ __forceinline__ float fmax2(float a, float b) {
+    return a >= b ? a : b;
+}
+
 __device__ __forceinline__ Vec3 getEnvironmentLight(Ray ray) {
     Vec3 skyColourHorizon = Vec3(1.f, 1.f, 1.f);
     Vec3 skyColourZenith = Vec3(0.42f, 0.737f, 1.f);
     Vec3 groundColour = Vec3(0.2f, 0.2f, 0.2f);
 
+    int sunFocus = 100; // lower = larger sun
+    float sunIntensity = 50.0f;
+    Vec3 sunLightDir = Vec3(0, -1, -1).normalize(); // test directly forward
+
+    // sky gradient
     float skyGradientT = pow(smoothstep(0, 0.4f, -ray.dir.y), 0.35f);
     Vec3 skyGradient = lerp(skyColourHorizon, skyColourZenith, skyGradientT);
 
-    float groundToSkyT = smoothstep(-0.01f, 0, -ray.dir.y);
+    // sun disk
+    float sunAmount = powf(fmaxf(0.0f, ray.dir.dot(sunLightDir)), sunFocus) * sunIntensity;
 
-    return lerp(groundColour, skyGradient, groundToSkyT);
-    // return Vec3(0, 0, 0.5f);
-    // return Vec3(0.5f * (ray.dir.x + 1.0f), 0.5f * (ray.dir.y + 1.0f), 0.5f * (ray.dir.z + 1.0f));
+    // ground blend (0 = ground, 1 = sky)
+    float groundToSkyT = smoothstep(-0.01f, 0.0f, -ray.dir.y);
+
+    // combine
+    Vec3 base = lerp(groundColour, skyGradient, groundToSkyT);
+    return base + Vec3(sunAmount) * groundToSkyT;
 }

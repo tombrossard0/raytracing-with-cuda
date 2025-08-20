@@ -14,7 +14,7 @@ __device__ Vec3 __forceinline__ trace(Ray ray, unsigned int &seed, const ScenePr
         if (i == 0 && hitInfo.didHit) dst = hitInfo.dst;
 
         if (!hitInfo.didHit) {
-            // incomingLight += getEnvironmentLight(ray) * rayColour;
+            incomingLight += getEnvironmentLight(ray) * rayColour;
             break;
         }
 

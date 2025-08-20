@@ -40,12 +40,12 @@ void scene2(Sphere *spheres, int &nSpheres, Camera *cam) {
     int k = 0;
     for (float i = -3.5f; i <= 3.5f; i += 3.5f) {
         for (float j = -3.5f; j <= 3.5f; j += 3.5f) {
-            if (i == 0 && j == 0) {
-                spheres[k] = Sphere(cam->center + Vec3(0, -15.f, 0), 9.3, 1);
-                spheres[k].material.emissionColour = 1;
-                spheres[k++].material.emissionStrength = 3.f;
-                continue;
-            }
+            // if (i == 0 && j == 0) {
+            //     spheres[k] = Sphere(cam->center + Vec3(0, -15.f, 0), 9.3, 1);
+            //     spheres[k].material.emissionColour = 1;
+            //     spheres[k++].material.emissionStrength = 3.f;
+            //     continue;
+            // }
 
             Vec3 randomColor(randf(), randf(), randf());
 
