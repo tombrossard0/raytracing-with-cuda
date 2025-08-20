@@ -10,15 +10,17 @@ __device__ void render_pixel(unsigned int &seed, unsigned int idx, Vec3 coords, 
 
     Vec3 totalIncomingLight = 0;
     float dst = -1;
-    // for (int i = 0; i < sp.cam->numberOfRayPerPixel; i++) { totalIncomingLight += trace(ray, seed, sp,
-    // dst); } // OLD
+
+    // for (int i = 0; i < sp.cam->numberOfRayPerPixel; i++) {
+    //     totalIncomingLight += trace(ray, seed, sp, dst);
+    // } // OLD
+    // totalIncomingLight /= sp.cam->numberOfRayPerPixel; // OLD
 
     for (int i = 0; i < sp.cam->numberOfRayPerPixel; i++) {
         Vec3 oldRender = sp.fb[idx];
         totalIncomingLight = trace(ray, seed, sp, dst); // NEW
 
         float weight = 1.0f / (std::abs(sp.numRenderedFramesB - sp.numRenderedFramesA) + 1 + i); // NEW
-        // totalIncomingLight /= sp.cam->numberOfRayPerPixel; // OLD
         totalIncomingLight = oldRender * (1 - weight) + totalIncomingLight * weight;
         sp.fb[idx] = totalIncomingLight;
     }

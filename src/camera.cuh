@@ -1,4 +1,5 @@
 #pragma once
+#include "InputManager.hpp"
 #include "vec3.cuh"
 
 #ifdef __CUDACC__
@@ -33,4 +34,5 @@ struct Camera {
         : center(c), position(p), forward(f), up(u), fov(_fov), aspect(_aspect) {}
 
     void updateCameraPosition();
+    void processInputs(InputManager inputManager, MouseState mouse, float deltaTime);
 };

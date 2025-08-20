@@ -13,13 +13,10 @@
 #include <iostream>
 #include <sstream>
 
-Scene::Scene(int w, int h) : width(w), height(h), fb(nullptr), spheres(nullptr), nSpheres(0), texture(0) {
-    makeCamera();
+#include <cstdlib> // for rand()
+#include <ctime>   // for seeding
 
-    size_t fb_size = width * height * sizeof(Vec3);
-    cudaMallocManaged(&fb, fb_size);
-
-    cudaMallocManaged(&spheres, MAX_SPHERES * sizeof(Sphere));
+void scene1(Sphere *spheres, int &nSpheres, Camera *cam) {
     nSpheres = 6;
     spheres[0] = Sphere(cam->center + Vec3(-17.218, -13.568, -3.990), 11.07, Vec3(1, 1, 1));
     spheres[0].material.emissionColour = Vec3(1, 1, 1);
@@ -30,6 +27,47 @@ Scene::Scene(int w, int h) : width(w), height(h), fb(nullptr), spheres(nullptr),
     spheres[3] = Sphere(cam->center + Vec3(1.59, 23.14, -3.850), 23.05, Vec3(1, 1, 1));
     spheres[4] = Sphere(cam->center + Vec3(0.16, -1.52, -1.07), 1, Vec3(1, 0, 0));
     spheres[5] = Sphere(cam->center + Vec3(-2.3, -0.8, -2.69), 1, Vec3(1, 1, 0.45));
+}
+
+inline float randf() {
+    return rand() / (float)RAND_MAX;
+}
+
+void scene2(Sphere *spheres, int &nSpheres, Camera *cam) {
+    nSpheres = 10;
+    srand((unsigned)time(0));
+    // 2.5
+    int k = 0;
+    for (float i = -3.5f; i <= 3.5f; i += 3.5f) {
+        for (float j = -3.5f; j <= 3.5f; j += 3.5f) {
+            if (i == 0 && j == 0) {
+                spheres[k] = Sphere(cam->center + Vec3(0, -15.f, 0), 9.3, 1);
+                spheres[k].material.emissionColour = 1;
+                spheres[k++].material.emissionStrength = 1;
+                continue;
+            }
+
+            Vec3 randomColor(randf(), randf(), randf());
+
+            if (abs(i) == abs(j)) {
+                spheres[k++] = Sphere(cam->center + Vec3(i / 1.4f, 0, j / 1.4f), 1.f, randomColor);
+                continue;
+            }
+            spheres[k++] = Sphere(cam->center + Vec3(i, 0, j), 1.f, randomColor);
+        }
+    }
+
+    spheres[9] = Sphere(cam->center + Vec3(0, 26.f, 0), 25.f, 1);
+}
+
+Scene::Scene(int w, int h) : width(w), height(h), fb(nullptr), spheres(nullptr), nSpheres(0), texture(0) {
+    makeCamera();
+
+    size_t fb_size = width * height * sizeof(Vec3);
+    cudaMallocManaged(&fb, fb_size);
+
+    cudaMallocManaged(&spheres, MAX_SPHERES * sizeof(Sphere));
+    scene2(spheres, nSpheres, cam);
 }
 
 Scene::~Scene() {
@@ -127,6 +165,7 @@ void Scene::renderPPM(const std::string &filename) {
 }
 
 void Scene::renderGIF(int nFrames, float totalAngle) {
+    cam->pitchDeg = -90;
     for (int i = 0; i < nFrames; i++) {
         cam->yawDeg = (totalAngle / nFrames) * i;
         cam->updateCameraPosition();
@@ -153,36 +192,5 @@ void Scene::render(int numRenderedFramesA, int numRenderedFramesB) {
 }
 
 void Scene::processInputs(InputManager inputManager, MouseState mouse, float deltaTime) {
-    // Movements control
-    float sensitivity = 0.2f;
-
-    if (mouse.right.pressed) {
-        cam->yawDeg += mouse.dx * sensitivity;
-        cam->pitchDeg += mouse.dy * sensitivity;
-        if (cam->pitchDeg > 89.0f) cam->pitchDeg = 89.0f;
-        if (cam->pitchDeg < -89.0f) cam->pitchDeg = -89.0f;
-        SDL_SetRelativeMouseMode(SDL_TRUE);
-    } else {
-        SDL_SetRelativeMouseMode(SDL_FALSE);
-    }
-
-    cam->radius -= 0.5f * mouse.wheel;
-    if (cam->radius < cam->minRadius) cam->radius = cam->minRadius;
-    if (cam->radius > cam->maxRadius) cam->radius = cam->maxRadius;
-
-    float speed = 10.5f * deltaTime;
-    float yawRad = cam->yawDeg * M_PI / 180.0f;
-    float pitchRad = cam->pitchDeg * M_PI / 180.0f;
-
-    Vec3 forward(cosf(pitchRad) * cosf(yawRad), sinf(pitchRad), cosf(pitchRad) * sinf(yawRad));
-    forward = -forward.normalize();
-    Vec3 right = -forward.cross(Vec3(0, 1, 0)).normalize();
-    Vec3 up = right.cross(forward).normalize();
-
-    if (inputManager.isKeyDown(SDL_SCANCODE_W)) cam->center += forward * speed;
-    if (inputManager.isKeyDown(SDL_SCANCODE_S)) cam->center -= forward * speed;
-    if (inputManager.isKeyDown(SDL_SCANCODE_A)) cam->center += right * speed;
-    if (inputManager.isKeyDown(SDL_SCANCODE_D)) cam->center -= right * speed;
-    if (inputManager.isKeyDown(SDL_SCANCODE_SPACE)) cam->center += up * speed;
-    if (inputManager.isKeyDown(SDL_SCANCODE_LCTRL)) cam->center -= up * speed;
+    cam->processInputs(inputManager, mouse, deltaTime);
 }
