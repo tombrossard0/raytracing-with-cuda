@@ -126,7 +126,7 @@ void Engine::start() {
         if (scene) {
             scene->renderFrame(i, ++j);
 
-            if (j > 200) { i += 1; }
+            if (j > 500) { i += 1; }
             // if (scene->focus) scene->renderFrame(); // Render new scene frame only if active
             uploadFbToTexture(*scene);
         }

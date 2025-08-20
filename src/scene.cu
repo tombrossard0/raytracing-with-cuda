@@ -20,7 +20,7 @@ void scene1(Sphere *spheres, int &nSpheres, Camera *cam) {
     nSpheres = 6;
     spheres[0] = Sphere(cam->center + Vec3(-17.218, -13.568, -3.990), 11.07, Vec3(1, 1, 1));
     spheres[0].material.emissionColour = Vec3(1, 1, 1);
-    spheres[0].material.emissionStrength = 1;
+    spheres[0].material.emissionStrength = 1.f;
 
     spheres[1] = Sphere(cam->center + Vec3(0.92, -0.71, -3), .73f, Vec3(0, 1, 0));
     spheres[2] = Sphere(cam->center + Vec3(2.23, -0.81, -6.13), .88f, Vec3(0, 0, 1));
@@ -43,7 +43,7 @@ void scene2(Sphere *spheres, int &nSpheres, Camera *cam) {
             if (i == 0 && j == 0) {
                 spheres[k] = Sphere(cam->center + Vec3(0, -15.f, 0), 9.3, 1);
                 spheres[k].material.emissionColour = 1;
-                spheres[k++].material.emissionStrength = 1;
+                spheres[k++].material.emissionStrength = 3.f;
                 continue;
             }
 
@@ -138,7 +138,7 @@ void Scene::renderGUI(GLuint &tex) {
             ImGui::ColorEdit3(("Emission color##" + std::to_string(i)).c_str(),
                               &spheres[i].material.emissionColour.x);
             ImGui::DragFloat(("EMission strength##" + std::to_string(i)).c_str(),
-                             &spheres[i].material.emissionStrength, 0.0f, 0.1f, 1.0f);
+                             &spheres[i].material.emissionStrength, 0.0f, 0.1f, 100.0f);
 
             if (ImGui::Button(("Remove##" + std::to_string(i)).c_str())) {
                 for (int j = i; j < nSpheres - 1; j++) spheres[j] = spheres[j + 1];

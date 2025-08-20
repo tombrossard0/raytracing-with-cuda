@@ -23,10 +23,9 @@ __device__ Vec3 __forceinline__ trace(Ray ray, unsigned int &seed, const ScenePr
 
         RayTracingMaterial material = hitInfo.material;
         Vec3 emittedLight = material.emissionColour * material.emissionStrength;
-        float lightStrength = hitInfo.normal.dot(ray.dir);
         incomingLight += emittedLight * rayColour;
 
-        rayColour *= material.colour * lightStrength * 2; // Absorb light
+        rayColour *= material.colour;
 
         if (rayColour < 1e-3f) break;
     }
