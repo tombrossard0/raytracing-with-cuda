@@ -9,7 +9,11 @@
     #define HD
 #endif
 
-enum EntityType { SPHERE, TRIANGLE };
+enum EntityType { SPHERE, MESH };
+
+struct Triangle {
+    Vec3 v0, v1, v2;
+};
 
 /**
  * @brief Simple entity class for raytracing.
@@ -17,29 +21,24 @@ enum EntityType { SPHERE, TRIANGLE };
 class Entity {
   public:
     EntityType type;
+    Vec3 center;
 
     // Sphere
-    Vec3 center;
     float radius;
     RayTracingMaterial material;
 
     // Triangle
-    Vec3 v0, v1, v2;
+    int numTriangles;
+    Triangle *triangles;
 
-    /**
-     * @brief Construct a new Entity object
-     * @param c Center of the entity
-     * @param r Radius of the entity
-     */
-    HD Entity(EntityType t, Vec3 c, float r) : type(t), center(c), radius(r), material(1) {}
+    HD Entity(EntityType t, Vec3 c, float r) : type(t), center(c), radius(r), material(1), numTriangles(0) {}
+    HD Entity(EntityType t, Vec3 c, float r, Vec3 m)
+        : type(t), center(c), radius(r), material(m), numTriangles(0) {}
 
-    /**
-     * @brief Construct a new Entity object
-     * @param c Center of the entity
-     * @param r Radius of the entity
-     * @param m Material of the entity
-     */
-    HD Entity(EntityType t, Vec3 c, float r, Vec3 m) : type(t), center(c), radius(r), material(m) {}
+    HD Entity(EntityType t, int numTriangles, Triangle *triangles)
+        : type(t), center(), radius(), material(1), numTriangles(numTriangles), triangles(triangles) {}
+    HD Entity(EntityType t, int numTriangles, Triangle *triangles, Vec3 m)
+        : type(t), center(), radius(), material(m), numTriangles(numTriangles), triangles(triangles) {}
 
     HD HitInfo intersectSphere(const Ray &ray) const {
         HitInfo hitInfo;
@@ -60,19 +59,21 @@ class Entity {
         return hitInfo;
     }
 
-    HD HitInfo intersectTriangle(const Ray &ray) const {
+    HD HitInfo intersectTriangle(const Ray &ray, Triangle triangle) const {
         HitInfo hit{};
 
         const float EPS = 1e-6f;
-        Vec3 v0v1 = v1 - v0;
-        Vec3 v0v2 = v2 - v0;
+        Vec3 v0v1 = (center + triangle.v1) - (center + triangle.v0);
+        Vec3 v0v2 = (center + triangle.v2) - (center + triangle.v0);
         Vec3 pvec = ray.dir.cross(v0v2);
         float det = v0v1.dot(pvec);
 
-        if (fabs(det) < EPS) return hit; // parallel
+        // if (fabs(det) < EPS) return hit; // parallel
+        if (det < EPS) return hit; // cull backfaces: only if facing the ray
+
         float invDet = 1.0f / det;
 
-        Vec3 tvec = ray.origin - v0;
+        Vec3 tvec = ray.origin - (triangle.v0 + center);
         float u = tvec.dot(pvec) * invDet;
         if (u < 0 || u > 1) return hit;
 
@@ -95,8 +96,13 @@ class Entity {
         switch (type) {
         case SPHERE:
             return intersectSphere(ray);
-        case TRIANGLE:
-            return intersectTriangle(ray);
+        case MESH:
+            for (int i = 0; i < numTriangles; i++) {
+                HitInfo hitInfo = intersectTriangle(ray, triangles[i]);
+                if (hitInfo.didHit) { return hitInfo; }
+            }
+
+            return {};
         }
         return {};
     }

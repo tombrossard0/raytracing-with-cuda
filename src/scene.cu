@@ -62,6 +62,41 @@ void scene2(Entity *entities, int &nEntities, Camera *cam) {
     entities[9] = Entity(EntityType::SPHERE, cam->center + Vec3(0, 26.f, 0), 25.f, 1);
 }
 
+void scene3(Entity *entities, int &nEntities, Camera *cam) {
+    nEntities = 1;
+
+    Triangle *triangles;
+    cudaMallocManaged(&triangles, 1 * sizeof(Triangle));
+
+    float s = 1.0f; // half-size of the cube
+    Vec3 center = cam->center;
+
+    // Front face (+Z)
+    triangles[0] = Triangle{center + Vec3(-s, -s, +s), center + Vec3(+s, -s, +s), center + Vec3(+s, +s, +s)};
+    triangles[1] = Triangle{center + Vec3(-s, -s, +s), center + Vec3(+s, +s, +s), center + Vec3(-s, +s, +s)};
+
+    // Back face (-Z)
+    triangles[2] = Triangle{center + Vec3(+s, -s, -s), center + Vec3(-s, -s, -s), center + Vec3(-s, +s, -s)};
+    triangles[3] = Triangle{center + Vec3(+s, -s, -s), center + Vec3(-s, +s, -s), center + Vec3(+s, +s, -s)};
+
+    // Left face (-X)
+    triangles[4] = Triangle{center + Vec3(-s, -s, -s), center + Vec3(-s, -s, +s), center + Vec3(-s, +s, +s)};
+    triangles[5] = Triangle{center + Vec3(-s, -s, -s), center + Vec3(-s, +s, +s), center + Vec3(-s, +s, -s)};
+
+    // Right face (+X)
+    triangles[6] = Triangle{center + Vec3(+s, -s, +s), center + Vec3(+s, -s, -s), center + Vec3(+s, +s, -s)};
+    triangles[7] = Triangle{center + Vec3(+s, -s, +s), center + Vec3(+s, +s, -s), center + Vec3(+s, +s, +s)};
+
+    // Top face (+Y)
+    triangles[8] = Triangle{center + Vec3(-s, +s, +s), center + Vec3(+s, +s, +s), center + Vec3(+s, +s, -s)};
+    triangles[9] = Triangle{center + Vec3(-s, +s, +s), center + Vec3(+s, +s, -s), center + Vec3(-s, +s, -s)};
+
+    // Bottom face (-Y)
+    triangles[10] = Triangle{center + Vec3(-s, -s, -s), center + Vec3(+s, -s, -s), center + Vec3(+s, -s, +s)};
+    triangles[11] = Triangle{center + Vec3(-s, -s, -s), center + Vec3(+s, -s, +s), center + Vec3(-s, -s, +s)};
+    entities[0] = Entity(EntityType::MESH, 12, triangles); // 1 is material
+}
+
 Scene::Scene(int w, int h) : width(w), height(h), fb(nullptr), entities(nullptr), nEntities(0), texture(0) {
     makeCamera();
 
@@ -69,7 +104,7 @@ Scene::Scene(int w, int h) : width(w), height(h), fb(nullptr), entities(nullptr)
     cudaMallocManaged(&fb, fb_size);
 
     cudaMallocManaged(&entities, MAX_ENTITIES * sizeof(Entity));
-    scene2(entities, nEntities, cam);
+    scene3(entities, nEntities, cam);
 }
 
 Scene::~Scene() {
@@ -77,7 +112,10 @@ Scene::~Scene() {
 
     cudaDeviceSynchronize(); // ensure all kernels are finished
     if (fb) { cudaFree(fb); };
-    if (entities) { cudaFree(entities); };
+    if (entities) {
+        for (int i = 0; i < nEntities; i++) { cudaFree(entities[i].triangles); }
+        cudaFree(entities);
+    };
     if (cam) { cudaFree(cam); }
 }
 
