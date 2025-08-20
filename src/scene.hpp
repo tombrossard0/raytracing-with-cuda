@@ -1,7 +1,7 @@
 #pragma once
 
 #include "camera.cuh"
-#include "sphere.cuh"
+#include "entity.cuh"
 #include "vec3.cuh"
 
 #include <SDL2/SDL.h>
@@ -13,8 +13,8 @@
 struct SceneProperties {
     Vec3 *fb;
     int width, height;
-    Sphere *spheres;
-    int nSpheres;
+    Entity *entities;
+    int nEntities;
     Camera *cam;
 
     int numRenderedFramesA;
@@ -28,8 +28,8 @@ class Scene {
     Vec3 *fb;
 
     // Objects in the scene
-    Sphere *spheres;
-    int nSpheres;
+    Entity *entities;
+    int nEntities;
 
     // ImGui setting
     bool focus;

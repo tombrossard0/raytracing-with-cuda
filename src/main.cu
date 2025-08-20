@@ -7,9 +7,9 @@
 
 #include "camera.cuh"
 #include "engine.hpp"
+#include "entity.cuh"
 #include "ppm.hpp"
 #include "scene.hpp"
-#include "sphere.cuh"
 #include "vec3.cuh"
 
 #include "render.cuh"

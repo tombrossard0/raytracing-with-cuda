@@ -1,9 +1,9 @@
 #pragma once
 
 #include "../camera.cuh"
+#include "../entity.cuh"
 #include "../ray.cuh"
 #include "../scene.hpp"
-#include "../sphere.cuh"
 #include "../vec3.cuh"
 #include "../vec4.cuh"
 
@@ -15,9 +15,9 @@ __device__ __forceinline__ void computeCameraBasis(const Camera &cam, Vec3 &righ
 __device__ __forceinline__ HitInfo calculateRayCollision(Ray ray, const SceneProperties &sp) {
     HitInfo closestHit{};
 
-    for (int i = 0; i < sp.nSpheres; i++) {
-        const Sphere &sphere = sp.spheres[i];
-        HitInfo hitInfo = sphere.intersect(ray);
+    for (int i = 0; i < sp.nEntities; i++) {
+        const Entity &entity = sp.entities[i];
+        HitInfo hitInfo = entity.intersect(ray);
 
         if (hitInfo.didHit && hitInfo.dst < closestHit.dst || hitInfo.didHit && !closestHit.didHit) {
             closestHit = hitInfo;

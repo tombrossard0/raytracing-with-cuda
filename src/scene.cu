@@ -16,58 +16,60 @@
 #include <cstdlib> // for rand()
 #include <ctime>   // for seeding
 
-void scene1(Sphere *spheres, int &nSpheres, Camera *cam) {
-    nSpheres = 6;
-    spheres[0] = Sphere(cam->center + Vec3(-17.218, -13.568, -3.990), 11.07, Vec3(1, 1, 1));
-    spheres[0].material.emissionColour = Vec3(1, 1, 1);
-    spheres[0].material.emissionStrength = 1.f;
+void scene1(Entity *entities, int &nEntities, Camera *cam) {
+    nEntities = 6;
+    entities[0] =
+        Entity(EntityType::SPHERE, cam->center + Vec3(-17.218, -13.568, -3.990), 11.07, Vec3(1, 1, 1));
+    entities[0].material.emissionColour = Vec3(1, 1, 1);
+    entities[0].material.emissionStrength = 1.f;
 
-    spheres[1] = Sphere(cam->center + Vec3(0.92, -0.71, -3), .73f, Vec3(0, 1, 0));
-    spheres[2] = Sphere(cam->center + Vec3(2.23, -0.81, -6.13), .88f, Vec3(0, 0, 1));
-    spheres[3] = Sphere(cam->center + Vec3(1.59, 23.14, -3.850), 23.05, Vec3(1, 1, 1));
-    spheres[4] = Sphere(cam->center + Vec3(0.16, -1.52, -1.07), 1, Vec3(1, 0, 0));
-    spheres[5] = Sphere(cam->center + Vec3(-2.3, -0.8, -2.69), 1, Vec3(1, 1, 0.45));
+    entities[1] = Entity(EntityType::SPHERE, cam->center + Vec3(0.92, -0.71, -3), .73f, Vec3(0, 1, 0));
+    entities[2] = Entity(EntityType::SPHERE, cam->center + Vec3(2.23, -0.81, -6.13), .88f, Vec3(0, 0, 1));
+    entities[3] = Entity(EntityType::SPHERE, cam->center + Vec3(1.59, 23.14, -3.850), 23.05, Vec3(1, 1, 1));
+    entities[4] = Entity(EntityType::SPHERE, cam->center + Vec3(0.16, -1.52, -1.07), 1, Vec3(1, 0, 0));
+    entities[5] = Entity(EntityType::SPHERE, cam->center + Vec3(-2.3, -0.8, -2.69), 1, Vec3(1, 1, 0.45));
 }
 
 inline float randf() {
     return rand() / (float)RAND_MAX;
 }
 
-void scene2(Sphere *spheres, int &nSpheres, Camera *cam) {
-    nSpheres = 10;
+void scene2(Entity *entities, int &nEntities, Camera *cam) {
+    nEntities = 10;
     srand((unsigned)time(0));
     // 2.5
     int k = 0;
     for (float i = -3.5f; i <= 3.5f; i += 3.5f) {
         for (float j = -3.5f; j <= 3.5f; j += 3.5f) {
             // if (i == 0 && j == 0) {
-            //     spheres[k] = Sphere(cam->center + Vec3(0, -15.f, 0), 9.3, 1);
-            //     spheres[k].material.emissionColour = 1;
-            //     spheres[k++].material.emissionStrength = 3.f;
+            //     entities[k] = Entity(cam->center + Vec3(0, -15.f, 0), 9.3, 1);
+            //     entities[k].material.emissionColour = 1;
+            //     entities[k++].material.emissionStrength = 3.f;
             //     continue;
             // }
 
             Vec3 randomColor(randf(), randf(), randf());
 
             if (abs(i) == abs(j)) {
-                spheres[k++] = Sphere(cam->center + Vec3(i / 1.4f, 0, j / 1.4f), 1.f, randomColor);
+                entities[k++] =
+                    Entity(EntityType::SPHERE, cam->center + Vec3(i / 1.4f, 0, j / 1.4f), 1.f, randomColor);
                 continue;
             }
-            spheres[k++] = Sphere(cam->center + Vec3(i, 0, j), 1.f, randomColor);
+            entities[k++] = Entity(EntityType::SPHERE, cam->center + Vec3(i, 0, j), 1.f, randomColor);
         }
     }
 
-    spheres[9] = Sphere(cam->center + Vec3(0, 26.f, 0), 25.f, 1);
+    entities[9] = Entity(EntityType::SPHERE, cam->center + Vec3(0, 26.f, 0), 25.f, 1);
 }
 
-Scene::Scene(int w, int h) : width(w), height(h), fb(nullptr), spheres(nullptr), nSpheres(0), texture(0) {
+Scene::Scene(int w, int h) : width(w), height(h), fb(nullptr), entities(nullptr), nEntities(0), texture(0) {
     makeCamera();
 
     size_t fb_size = width * height * sizeof(Vec3);
     cudaMallocManaged(&fb, fb_size);
 
-    cudaMallocManaged(&spheres, MAX_SPHERES * sizeof(Sphere));
-    scene2(spheres, nSpheres, cam);
+    cudaMallocManaged(&entities, MAX_ENTITIES * sizeof(Entity));
+    scene2(entities, nEntities, cam);
 }
 
 Scene::~Scene() {
@@ -75,7 +77,7 @@ Scene::~Scene() {
 
     cudaDeviceSynchronize(); // ensure all kernels are finished
     if (fb) { cudaFree(fb); };
-    if (spheres) { cudaFree(spheres); };
+    if (entities) { cudaFree(entities); };
     if (cam) { cudaFree(cam); }
 }
 
@@ -124,25 +126,25 @@ void Scene::renderGUI(GLuint &tex) {
     ImGui::End();
 
     ImGui::Begin("Spheres");
-    if (ImGui::Button("Add Sphere")) {
-        if (nSpheres < MAX_SPHERES) { spheres[nSpheres++] = Sphere(Vec3(), 1); }
+    if (ImGui::Button("Add Entity")) {
+        if (nEntities < MAX_ENTITIES) { entities[nEntities++] = Entity(EntityType::SPHERE, Vec3(), 1); }
     }
 
-    for (int i = 0; i < nSpheres; i++) {
-        std::string nodeLabel = "Sphere " + std::to_string(i);
+    for (int i = 0; i < nEntities; i++) {
+        std::string nodeLabel = "Entity " + std::to_string(i);
         if (ImGui::CollapsingHeader(nodeLabel.c_str())) {
-            ImGui::DragFloat3(("Position##" + std::to_string(i)).c_str(), &spheres[i].center.x, 0.01f);
-            ImGui::DragFloat(("Radius##" + std::to_string(i)).c_str(), &spheres[i].radius, 0.01f, 0.1f,
+            ImGui::DragFloat3(("Position##" + std::to_string(i)).c_str(), &entities[i].center.x, 0.01f);
+            ImGui::DragFloat(("Radius##" + std::to_string(i)).c_str(), &entities[i].radius, 0.01f, 0.1f,
                              50.0f);
-            ImGui::ColorEdit3(("Color##" + std::to_string(i)).c_str(), &spheres[i].material.colour.x);
+            ImGui::ColorEdit3(("Color##" + std::to_string(i)).c_str(), &entities[i].material.colour.x);
             ImGui::ColorEdit3(("Emission color##" + std::to_string(i)).c_str(),
-                              &spheres[i].material.emissionColour.x);
+                              &entities[i].material.emissionColour.x);
             ImGui::DragFloat(("EMission strength##" + std::to_string(i)).c_str(),
-                             &spheres[i].material.emissionStrength, 0.0f, 0.1f, 100.0f);
+                             &entities[i].material.emissionStrength, 0.0f, 0.1f, 100.0f);
 
             if (ImGui::Button(("Remove##" + std::to_string(i)).c_str())) {
-                for (int j = i; j < nSpheres - 1; j++) spheres[j] = spheres[j + 1];
-                nSpheres--;
+                for (int j = i; j < nEntities - 1; j++) entities[j] = entities[j + 1];
+                nEntities--;
             }
         }
     }
@@ -184,7 +186,7 @@ void Scene::render(int numRenderedFramesA, int numRenderedFramesB) {
     // Note: the kernel runs on the GPU, which cannot directly access host
     // memory unless we use managed memory or cudaMemcpy
     SceneProperties sceneProperties{
-        fb, width, height, spheres, nSpheres, cam, numRenderedFramesA, numRenderedFramesB};
+        fb, width, height, entities, nEntities, cam, numRenderedFramesA, numRenderedFramesB};
 
     render_scene<<<blocks, threads>>>(sceneProperties);
 
