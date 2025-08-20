@@ -8,6 +8,8 @@
 #include <SDL2/SDL_opengl.h>
 #include <string>
 
+#include "InputManager.hpp"
+
 struct SceneProperties {
     Vec3 *fb;
     int width, height;
@@ -21,17 +23,15 @@ struct SceneProperties {
 
 class Scene {
   public:
+    // Display
     int width, height;
     Vec3 *fb;
+
+    // Objects in the scene
     Sphere *spheres;
     int nSpheres;
-    float radius;
-    float angleDeg;
-    float yawDeg;
-    float pitchDeg;
-    float minRadius;
-    float maxRadius;
 
+    // ImGui setting
     bool focus;
 
     Camera *cam;
@@ -42,6 +42,9 @@ class Scene {
     ~Scene();
 
     void makeCamera();
+
+    void processInputs(InputManager inputManager, MouseState mouseState, float deltaTime);
+
     void renderFrame(int i, int j);
     void renderGUI(GLuint &tex);
 

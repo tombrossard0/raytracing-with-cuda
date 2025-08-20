@@ -13,9 +13,7 @@
 #include <iostream>
 #include <sstream>
 
-Scene::Scene(int w, int h)
-    : width(w), height(h), fb(nullptr), spheres(nullptr), nSpheres(0), radius(15.0f), yawDeg(64.0f),
-      pitchDeg(-16.0f), minRadius(1.0f), maxRadius(20.0), texture(0) {
+Scene::Scene(int w, int h) : width(w), height(h), fb(nullptr), spheres(nullptr), nSpheres(0), texture(0) {
     makeCamera();
 
     size_t fb_size = width * height * sizeof(Vec3);
@@ -46,12 +44,18 @@ Scene::~Scene() {
 void Scene::makeCamera() {
     cudaMallocManaged(&cam, sizeof(Camera));
 
+    cam->radius = 15.0f;
+    cam->yawDeg = 64.0f;
+    cam->pitchDeg = -16.0f;
+    cam->minRadius = 1.0f;
+    cam->maxRadius = 20.0;
+
     cam->maxBounces = 10;
     cam->numberOfRayPerPixel = 10;
 
     cam->center = Vec3(0, 0, 0);
 
-    cam->updateCameraPosition(yawDeg, pitchDeg, radius);
+    cam->updateCameraPosition();
 
     cam->up = Vec3(0, 1, 0);
     cam->fov = 90.0f;
@@ -59,7 +63,7 @@ void Scene::makeCamera() {
 }
 
 void Scene::renderFrame(int i, int j) {
-    cam->updateCameraPosition(yawDeg, pitchDeg, radius);
+    cam->updateCameraPosition();
     render(i, j);
 }
 
@@ -73,9 +77,9 @@ void Scene::renderGUI(GLuint &tex) {
     if (!hovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) focus = false;
 
     ImGui::Begin("Camera Controls");
-    ImGui::SliderFloat("Radius", &radius, minRadius, maxRadius);
-    ImGui::SliderFloat("Yaw", &yawDeg, -180.0f, 180.0f);
-    ImGui::SliderFloat("Pitch", &pitchDeg, -89.0f, 89.0f);
+    ImGui::SliderFloat("Radius", &cam->radius, cam->minRadius, cam->maxRadius);
+    ImGui::SliderFloat("Yaw", &cam->yawDeg, -180.0f, 180.0f);
+    ImGui::SliderFloat("Pitch", &cam->pitchDeg, -89.0f, 89.0f);
     ImGui::DragFloat3("Center", &cam->center.x, 0.01f);
     ImGui::DragInt("Max Bounces", &cam->maxBounces, 1, 0, 1000);
     ImGui::DragInt("Number of ray per pixel", &cam->numberOfRayPerPixel, 1, 0, 1000);
@@ -124,8 +128,8 @@ void Scene::renderPPM(const std::string &filename) {
 
 void Scene::renderGIF(int nFrames, float totalAngle) {
     for (int i = 0; i < nFrames; i++) {
-        yawDeg = (totalAngle / nFrames) * i;
-        cam->updateCameraPosition(yawDeg, pitchDeg, radius);
+        cam->yawDeg = (totalAngle / nFrames) * i;
+        cam->updateCameraPosition();
         std::ostringstream filename;
         filename << "build/frame_" << std::setw(3) << std::setfill('0') << i << ".ppm";
         renderPPMFrame(filename.str());
@@ -146,4 +150,39 @@ void Scene::render(int numRenderedFramesA, int numRenderedFramesB) {
     render_scene<<<blocks, threads>>>(sceneProperties);
 
     cudaDeviceSynchronize();
+}
+
+void Scene::processInputs(InputManager inputManager, MouseState mouse, float deltaTime) {
+    // Movements control
+    float sensitivity = 0.2f;
+
+    if (mouse.right.pressed) {
+        cam->yawDeg += mouse.dx * sensitivity;
+        cam->pitchDeg += mouse.dy * sensitivity;
+        if (cam->pitchDeg > 89.0f) cam->pitchDeg = 89.0f;
+        if (cam->pitchDeg < -89.0f) cam->pitchDeg = -89.0f;
+        SDL_SetRelativeMouseMode(SDL_TRUE);
+    } else {
+        SDL_SetRelativeMouseMode(SDL_FALSE);
+    }
+
+    cam->radius -= 0.5f * mouse.wheel;
+    if (cam->radius < cam->minRadius) cam->radius = cam->minRadius;
+    if (cam->radius > cam->maxRadius) cam->radius = cam->maxRadius;
+
+    float speed = 10.5f * deltaTime;
+    float yawRad = cam->yawDeg * M_PI / 180.0f;
+    float pitchRad = cam->pitchDeg * M_PI / 180.0f;
+
+    Vec3 forward(cosf(pitchRad) * cosf(yawRad), sinf(pitchRad), cosf(pitchRad) * sinf(yawRad));
+    forward = -forward.normalize();
+    Vec3 right = -forward.cross(Vec3(0, 1, 0)).normalize();
+    Vec3 up = right.cross(forward).normalize();
+
+    if (inputManager.isKeyDown(SDL_SCANCODE_W)) cam->center += forward * speed;
+    if (inputManager.isKeyDown(SDL_SCANCODE_S)) cam->center -= forward * speed;
+    if (inputManager.isKeyDown(SDL_SCANCODE_A)) cam->center += right * speed;
+    if (inputManager.isKeyDown(SDL_SCANCODE_D)) cam->center -= right * speed;
+    if (inputManager.isKeyDown(SDL_SCANCODE_SPACE)) cam->center += up * speed;
+    if (inputManager.isKeyDown(SDL_SCANCODE_LCTRL)) cam->center -= up * speed;
 }

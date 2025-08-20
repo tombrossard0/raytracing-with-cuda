@@ -14,7 +14,7 @@ __device__ Vec3 __forceinline__ trace(Ray ray, unsigned int &seed, const ScenePr
         if (i == 0 && hitInfo.didHit) dst = hitInfo.dst;
 
         if (!hitInfo.didHit) {
-            incomingLight += getEnvironmentLight(ray) * rayColour;
+            // incomingLight += getEnvironmentLight(ray) * rayColour;
             break;
         }
 
@@ -22,9 +22,11 @@ __device__ Vec3 __forceinline__ trace(Ray ray, unsigned int &seed, const ScenePr
         ray.dir = randomHemisphereDirection(hitInfo.normal, seed);
 
         RayTracingMaterial material = hitInfo.material;
-        incomingLight += (material.emissionColour * material.emissionStrength) * rayColour;
+        Vec3 emittedLight = material.emissionColour * material.emissionStrength;
+        float lightStrength = hitInfo.normal.dot(ray.dir);
+        incomingLight += emittedLight * rayColour;
 
-        rayColour *= material.colour; // Absorb light
+        rayColour *= material.colour * lightStrength * 2; // Absorb light
 
         if (rayColour < 1e-3f) break;
     }

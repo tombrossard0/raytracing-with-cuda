@@ -1,6 +1,6 @@
 #include "camera.cuh"
 
-void Camera::updateCameraPosition(float yawDeg, float pitchDeg, float radius) {
+void Camera::updateCameraPosition() {
     // Convert to radians
     float yawRad = yawDeg * M_PI / 180.0f;
     float pitchRad = pitchDeg * M_PI / 180.0f;

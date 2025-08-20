@@ -108,43 +108,11 @@ void Engine::computeFPS() {
 
 void Engine::processInputs(Scene *scene) {
     inputManager.update(running);
-    MouseState mouse = inputManager.mouse;
 
     if (inputManager.isKeyDown(SDL_SCANCODE_ESCAPE)) running = false;
 
     if (scene && scene->focus && ImGui::GetIO().WantCaptureMouse) {
-        // Movements control
-        float sensitivity = 0.2f;
-
-        if (mouse.right.pressed) {
-            scene->yawDeg += mouse.dx * sensitivity;
-            scene->pitchDeg -= mouse.dy * sensitivity;
-            if (scene->pitchDeg > 89.0f) scene->pitchDeg = 89.0f;
-            if (scene->pitchDeg < -89.0f) scene->pitchDeg = -89.0f;
-            SDL_SetRelativeMouseMode(SDL_TRUE);
-        } else {
-            SDL_SetRelativeMouseMode(SDL_FALSE);
-        }
-
-        scene->radius -= 0.5f * mouse.wheel;
-        if (scene->radius < scene->minRadius) scene->radius = scene->minRadius;
-        if (scene->radius > scene->maxRadius) scene->radius = scene->maxRadius;
-
-        float speed = 10.5f * deltaTime;
-        float yawRad = scene->yawDeg * M_PI / 180.0f;
-        float pitchRad = scene->pitchDeg * M_PI / 180.0f;
-
-        Vec3 forward(cosf(pitchRad) * cosf(yawRad), sinf(pitchRad), cosf(pitchRad) * sinf(yawRad));
-        forward = -forward.normalize();
-        Vec3 right = forward.cross(Vec3(0, 1, 0)).normalize();
-        Vec3 up = right.cross(forward).normalize();
-
-        if (inputManager.isKeyDown(SDL_SCANCODE_W)) scene->cam->center = scene->cam->center + forward * speed;
-        if (inputManager.isKeyDown(SDL_SCANCODE_S)) scene->cam->center = scene->cam->center - forward * speed;
-        if (inputManager.isKeyDown(SDL_SCANCODE_A)) scene->cam->center = scene->cam->center - right * speed;
-        if (inputManager.isKeyDown(SDL_SCANCODE_D)) scene->cam->center = scene->cam->center + right * speed;
-        if (inputManager.isKeyDown(SDL_SCANCODE_SPACE)) scene->cam->center = scene->cam->center - up * speed;
-        if (inputManager.isKeyDown(SDL_SCANCODE_LCTRL)) scene->cam->center = scene->cam->center + up * speed;
+        scene->processInputs(inputManager, inputManager.mouse, deltaTime);
     }
 }
 
