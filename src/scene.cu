@@ -16,6 +16,11 @@
 #include <cstdlib> // for rand()
 #include <ctime>   // for seeding
 
+#include <assimp/Importer.hpp>
+#include <assimp/postprocess.h>
+#include <assimp/scene.h>
+#include <vector>
+
 void scene1(Entity *entities, int &nEntities, Camera *cam) {
     nEntities = 6;
     entities[0] =
@@ -94,7 +99,44 @@ void scene3(Entity *entities, int &nEntities, Camera *cam) {
     // Bottom face (-Y)
     triangles[10] = Triangle{center + Vec3(-s, -s, -s), center + Vec3(+s, -s, -s), center + Vec3(+s, -s, +s)};
     triangles[11] = Triangle{center + Vec3(-s, -s, -s), center + Vec3(+s, -s, +s), center + Vec3(-s, -s, +s)};
+
     entities[0] = Entity(EntityType::MESH, 12, triangles); // 1 is material
+}
+
+void loadFBX(const std::string &path, std::vector<Triangle> &outTris) {
+    Assimp::Importer importer;
+    const aiScene *scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_JoinIdenticalVertices |
+                                                       aiProcess_PreTransformVertices);
+
+    if (!scene || !scene->HasMeshes()) { throw std::runtime_error("Failed to load FBX file: " + path); }
+
+    for (unsigned int m = 0; m < scene->mNumMeshes; m++) {
+        aiMesh *mesh = scene->mMeshes[m];
+        for (unsigned int f = 0; f < mesh->mNumFaces; f++) {
+            aiFace &face = mesh->mFaces[f];
+            if (face.mNumIndices != 3) continue;
+
+            aiVector3D v0 = mesh->mVertices[face.mIndices[0]];
+            aiVector3D v1 = mesh->mVertices[face.mIndices[1]];
+            aiVector3D v2 = mesh->mVertices[face.mIndices[2]];
+
+            outTris.push_back(
+                Triangle{Vec3(v0.x, v0.y, v0.z), Vec3(v1.x, v1.y, v1.z), Vec3(v2.x, v2.y, v2.z)});
+        }
+    }
+}
+
+void scene4(Entity *entities, int &nEntities) {
+    nEntities = 1;
+
+    std::vector<Triangle> hostTriangles;
+    loadFBX("models/Knight.fbx", hostTriangles);
+
+    Triangle *triangles;
+    cudaMallocManaged(&triangles, hostTriangles.size() * sizeof(Triangle));
+    memcpy(triangles, hostTriangles.data(), hostTriangles.size() * sizeof(Triangle));
+
+    entities[0] = Entity(EntityType::MESH, hostTriangles.size(), triangles);
 }
 
 Scene::Scene(int w, int h) : width(w), height(h), fb(nullptr), entities(nullptr), nEntities(0), texture(0) {
@@ -172,8 +214,7 @@ void Scene::renderGUI(GLuint &tex) {
         std::string nodeLabel = "Entity " + std::to_string(i);
         if (ImGui::CollapsingHeader(nodeLabel.c_str())) {
             ImGui::DragFloat3(("Position##" + std::to_string(i)).c_str(), &entities[i].center.x, 0.01f);
-            ImGui::DragFloat(("Radius##" + std::to_string(i)).c_str(), &entities[i].radius, 0.01f, 0.1f,
-                             50.0f);
+            ImGui::DragFloat(("Size##" + std::to_string(i)).c_str(), &entities[i].size, 0.01f, 0.1f, 50.0f);
             ImGui::ColorEdit3(("Color##" + std::to_string(i)).c_str(), &entities[i].material.colour.x);
             ImGui::ColorEdit3(("Emission color##" + std::to_string(i)).c_str(),
                               &entities[i].material.emissionColour.x);

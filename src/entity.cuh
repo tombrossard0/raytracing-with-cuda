@@ -24,21 +24,21 @@ class Entity {
     Vec3 center;
 
     // Sphere
-    float radius;
+    float size;
     RayTracingMaterial material;
 
     // Triangle
     int numTriangles;
     Triangle *triangles;
 
-    HD Entity(EntityType t, Vec3 c, float r) : type(t), center(c), radius(r), material(1), numTriangles(0) {}
+    HD Entity(EntityType t, Vec3 c, float r) : type(t), center(c), size(r), material(1), numTriangles(0) {}
     HD Entity(EntityType t, Vec3 c, float r, Vec3 m)
-        : type(t), center(c), radius(r), material(m), numTriangles(0) {}
+        : type(t), center(c), size(r), material(m), numTriangles(0) {}
 
     HD Entity(EntityType t, int numTriangles, Triangle *triangles)
-        : type(t), center(), radius(), material(1), numTriangles(numTriangles), triangles(triangles) {}
+        : type(t), center(), size(), material(1), numTriangles(numTriangles), triangles(triangles) {}
     HD Entity(EntityType t, int numTriangles, Triangle *triangles, Vec3 m)
-        : type(t), center(), radius(), material(m), numTriangles(numTriangles), triangles(triangles) {}
+        : type(t), center(), size(), material(m), numTriangles(numTriangles), triangles(triangles) {}
 
     HD HitInfo intersectSphere(const Ray &ray) const {
         HitInfo hitInfo;
@@ -46,7 +46,7 @@ class Entity {
         Vec3 oc = ray.origin - center;
         float a = ray.dir.dot(ray.dir);
         float b = 2.0f * oc.dot(ray.dir);
-        float c = oc.dot(oc) - radius * radius;
+        float c = oc.dot(oc) - size * size;
         float discriminant = b * b - 4 * a * c;
         if (discriminant < 0) return hitInfo;
 
@@ -63,8 +63,8 @@ class Entity {
         HitInfo hit{};
 
         const float EPS = 1e-6f;
-        Vec3 v0v1 = (center + triangle.v1) - (center + triangle.v0);
-        Vec3 v0v2 = (center + triangle.v2) - (center + triangle.v0);
+        Vec3 v0v1 = (triangle.v1 - triangle.v0) * size;
+        Vec3 v0v2 = (triangle.v2 - triangle.v0) * size;
         Vec3 pvec = ray.dir.cross(v0v2);
         float det = v0v1.dot(pvec);
 
@@ -73,7 +73,7 @@ class Entity {
 
         float invDet = 1.0f / det;
 
-        Vec3 tvec = ray.origin - (triangle.v0 + center);
+        Vec3 tvec = ray.origin - (triangle.v0 + center) * size;
         float u = tvec.dot(pvec) * invDet;
         if (u < 0 || u > 1) return hit;
 
@@ -97,12 +97,16 @@ class Entity {
         case SPHERE:
             return intersectSphere(ray);
         case MESH:
+            HitInfo closestInfo;
             for (int i = 0; i < numTriangles; i++) {
                 HitInfo hitInfo = intersectTriangle(ray, triangles[i]);
-                if (hitInfo.didHit) { return hitInfo; }
+                if (hitInfo.didHit &&
+                    ((closestInfo.didHit && hitInfo.dst < closestInfo.dst) || !closestInfo.didHit)) {
+                    closestInfo = hitInfo;
+                }
             }
 
-            return {};
+            return closestInfo;
         }
         return {};
     }

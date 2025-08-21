@@ -8,7 +8,7 @@ NVCCFLAGS = -O2 -g -std=c++17 -Xcompiler "-Wall -Wextra -Werror -Wno-error=cpp" 
 CXXFLAGS = -O2 -g -Wall -Wextra -Wpedantic -Werror -I/usr/include/SDL2 -Iimgui -Iimgui/backends
 
 # Linker flags
-LDFLAGS = -lstdc++ -lm -lSDL2 -lGL
+LDFLAGS = -lstdc++ -lm -lSDL2 -lGL -lassimp
 
 # Sources
 SRC_CU    = $(wildcard src/*.cu src/shaders/*.cu)

@@ -1,9 +1,8 @@
 # CUDA Raytracer
 
 This project is a simple GPU-based raytracer using CUDA, C++, SDL2, ImGui and
-OpenGL (OpenGL is only used to support ImGui). It supports rendering single
-images, generating frame sequences from user inputs in realtime and creating
-animated GIFs.
+OpenGL. It supports rendering single images, generating frame sequences from
+user inputs in realtime and creating animated GIFs.
 
 ![screenshot](images/screenshot.png)
 
@@ -12,7 +11,8 @@ animated GIFs.
 - **CUDA Toolkit** (for `nvcc`)
 - **C++17 compiler** (`g++` recommended, this is the default used by `Make`)
 - **SDL2 development libraries**
-- **ImageMagik** (for converting PPM frames to PNG/GIF, you can changed it as you wish)
+- **ImageMagik**
+- **[Assimp](https://github.com/assimp/assimp?tab=readme-ov-file)**
 - **Make**
 
 ## Build instructions
@@ -72,3 +72,8 @@ Removes `build/` folder, PPM/PNG outputs, and generated frames.
 
 - Ensure your GPU supports **CUDA**.
 - Large numbers of rays per pixel or bounces may significantly increase render time.
+
+## Thanks
+
+The project was motivated thanks to the video of [Sebastian Lague](https://www.youtube.com/watch?v=Qz0KTGYJtUk&t=1s&ab_channel=SebastianLague) about **Ray Tracing**. The Knight's model comes from
+his video.
