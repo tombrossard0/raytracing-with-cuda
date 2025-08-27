@@ -223,8 +223,10 @@ void Scene::renderGUI(GLuint &tex) {
             ImGui::ColorEdit3(("Color##" + std::to_string(i)).c_str(), &entities[i].material.colour.x);
             ImGui::ColorEdit3(("Emission color##" + std::to_string(i)).c_str(),
                               &entities[i].material.emissionColour.x);
-            ImGui::DragFloat(("EMission strength##" + std::to_string(i)).c_str(),
+            ImGui::DragFloat(("Emission strength##" + std::to_string(i)).c_str(),
                              &entities[i].material.emissionStrength, 0.0f, 0.1f, 100.0f);
+            ImGui::DragFloat(("Emission smoothness##" + std::to_string(i)).c_str(),
+                             &entities[i].material.smoothness, 0.0f, 0.01f, 1.0f);
 
             if (ImGui::Button(("Remove##" + std::to_string(i)).c_str())) {
                 for (int j = i; j < nEntities - 1; j++) entities[j] = entities[j + 1];

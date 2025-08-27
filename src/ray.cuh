@@ -13,6 +13,7 @@ struct RayTracingMaterial {
     Vec3 colour;
     Vec3 emissionColour;
     float emissionStrength;
+    float smoothness;
 
     HD RayTracingMaterial(Vec3 _colour) : colour(_colour) {}
 };
