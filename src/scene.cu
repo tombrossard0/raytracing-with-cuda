@@ -110,6 +110,8 @@ void loadFBX(const std::string &path, std::vector<Triangle> &outTris) {
 
     if (!scene || !scene->HasMeshes()) { throw std::runtime_error("Failed to load FBX file: " + path); }
 
+    auto fixCoord = [](const aiVector3D &v) { return Vec3(v.x, -v.y, v.z); };
+
     for (unsigned int m = 0; m < scene->mNumMeshes; m++) {
         aiMesh *mesh = scene->mMeshes[m];
         for (unsigned int f = 0; f < mesh->mNumFaces; f++) {
@@ -120,8 +122,7 @@ void loadFBX(const std::string &path, std::vector<Triangle> &outTris) {
             aiVector3D v1 = mesh->mVertices[face.mIndices[1]];
             aiVector3D v2 = mesh->mVertices[face.mIndices[2]];
 
-            outTris.push_back(
-                Triangle{Vec3(v0.x, v0.y, v0.z), Vec3(v1.x, v1.y, v1.z), Vec3(v2.x, v2.y, v2.z)});
+            outTris.push_back(Triangle{fixCoord(v0), fixCoord(v2), fixCoord(v1)});
         }
     }
 }
@@ -137,6 +138,7 @@ void scene4(Entity *entities, int &nEntities) {
     memcpy(triangles, hostTriangles.data(), hostTriangles.size() * sizeof(Triangle));
 
     entities[0] = Entity(EntityType::MESH, hostTriangles.size(), triangles);
+    entities[0].size = 0.01;
 }
 
 Scene::Scene(int w, int h) : width(w), height(h), fb(nullptr), entities(nullptr), nEntities(0), texture(0) {
@@ -146,7 +148,8 @@ Scene::Scene(int w, int h) : width(w), height(h), fb(nullptr), entities(nullptr)
     cudaMallocManaged(&fb, fb_size);
 
     cudaMallocManaged(&entities, MAX_ENTITIES * sizeof(Entity));
-    scene3(entities, nEntities, cam);
+    // scene3(entities, nEntities, cam);
+    scene4(entities, nEntities);
 }
 
 Scene::~Scene() {
