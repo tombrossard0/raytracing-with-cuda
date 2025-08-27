@@ -47,6 +47,8 @@ make run-video
 This command will generate all `build/frame_XXX.ppm` files and converts them to
 `build/camera_rotation.gif` with **ImageMakik**.
 
+![screenshot](images/camera_rotation.gif)
+
 ### Run the interactive Application
 
 ```sh
