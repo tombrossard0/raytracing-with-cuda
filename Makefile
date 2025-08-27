@@ -67,7 +67,7 @@ run-image: all
 	convert $(OUTPUT_NAME).ppm $(OUTPUT_NAME).png
 
 run-video: all
-	./$(TARGET) --video
+	./$(TARGET) --video  --res 1920x1080
 	convert -delay 5 -loop 0 build/frame_*.ppm build/camera_rotation.gif
 
 dry-run: all

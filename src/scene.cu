@@ -65,6 +65,7 @@ void scene2(Entity *entities, int &nEntities, Camera *cam) {
     }
 
     entities[9] = Entity(EntityType::SPHERE, cam->center + Vec3(0, 26.f, 0), 25.f, 1);
+    entities[9].material.smoothness = 1;
 }
 
 void scene3(Entity *entities, int &nEntities, Camera *cam) {
@@ -253,7 +254,7 @@ void Scene::renderPPM(const std::string &filename) {
 }
 
 void Scene::renderGIF(int nFrames, float totalAngle) {
-    cam->pitchDeg = -90;
+    // cam->pitchDeg = -23;
     for (int i = 0; i < nFrames; i++) {
         cam->yawDeg = (totalAngle / nFrames) * i;
         cam->updateCameraPosition();
