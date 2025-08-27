@@ -63,7 +63,7 @@ run: all
 	./$(TARGET)
 
 run-image: all
-	./$(TARGET) --image --output $(OUTPUT_NAME).ppm
+	./$(TARGET) --image --output $(OUTPUT_NAME).ppm --res 1920x1080
 	convert $(OUTPUT_NAME).ppm $(OUTPUT_NAME).png
 
 run-video: all

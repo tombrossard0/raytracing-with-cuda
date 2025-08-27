@@ -20,11 +20,11 @@ __device__ Vec3 __forceinline__ trace(Ray ray, unsigned int &seed, const ScenePr
 
         ray.origin = hitInfo.hitPoint;
         ray.dir = randomHemisphereDirection(hitInfo.normal, seed);
+        // ray.dir = (hitInfo.normal + randomDirection(seed)).normalize();
 
         RayTracingMaterial material = hitInfo.material;
         Vec3 emittedLight = material.emissionColour * material.emissionStrength;
         incomingLight += emittedLight * rayColour;
-
         rayColour *= material.colour;
 
         if (rayColour < 1e-3f) break;

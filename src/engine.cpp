@@ -124,9 +124,12 @@ void Engine::start() {
         updateTime();
 
         if (scene) {
-            scene->renderFrame(i, ++j);
+            // Upgrade with time
+            // scene->renderFrame(i, ++j);
+            // if (j > 200) { i += 1; }
 
-            if (j > 200) { i += 1; }
+            scene->renderFrame(i, j);
+
             // if (scene->focus) scene->renderFrame(); // Render new scene frame only if active
             uploadFbToTexture(*scene);
         }

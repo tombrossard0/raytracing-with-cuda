@@ -148,8 +148,10 @@ Scene::Scene(int w, int h) : width(w), height(h), fb(nullptr), entities(nullptr)
     cudaMallocManaged(&fb, fb_size);
 
     cudaMallocManaged(&entities, MAX_ENTITIES * sizeof(Entity));
+
+    scene2(entities, nEntities, cam);
     // scene3(entities, nEntities, cam);
-    scene4(entities, nEntities);
+    // scene4(entities, nEntities);
 }
 
 Scene::~Scene() {
