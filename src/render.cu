@@ -11,13 +11,17 @@ __device__ void render_pixel(unsigned int &seed, unsigned int idx, Vec3 coords, 
     Vec3 totalIncomingLight = 0;
     float dst = -1;
 
-    for (int i = 0; i < sp.cam->numberOfRayPerPixel; i++) {
-        Vec3 oldRender = sp.fb[idx];
-        totalIncomingLight = trace(ray, seed, sp, dst);
+    for (int i = 0; i < sp.cam->numberOfRayPerPixel; i++) { totalIncomingLight += trace(ray, seed, sp, dst); }
 
-        float weight = 1.0f / (std::abs(sp.numRenderedFramesB - sp.numRenderedFramesA) + 1 + i);
-        totalIncomingLight = oldRender * (1 - weight) + totalIncomingLight * weight;
+    totalIncomingLight /= float(sp.cam->numberOfRayPerPixel);
+
+    int frameCount = sp.numRenderedFramesB - sp.numRenderedFramesA + 1;
+    if (frameCount <= 1) {
+        // First frame after movement
         sp.fb[idx] = totalIncomingLight;
+    } else {
+        Vec3 oldRender = sp.fb[idx];
+        sp.fb[idx] = (oldRender * (frameCount - 1) + totalIncomingLight) / float(frameCount);
     }
 
     // Generate an infinite grid
@@ -29,11 +33,9 @@ __device__ void render_pixel(unsigned int &seed, unsigned int idx, Vec3 coords, 
         float maxGridDst = 50.f;
         if (gridCol != 0 && (dst > -1 && dst > tGrid || dst == -1) && tGrid < maxGridDst) {
             float alpha = 1 - tGrid / maxGridDst;
-            totalIncomingLight = totalIncomingLight * (1.f - alpha) + gridCol * alpha;
+            sp.fb[idx] = sp.fb[idx] * (1.f - alpha) + gridCol * alpha;
         }
     }
-
-    sp.fb[idx] = totalIncomingLight;
 }
 
 // __device__ void render_gradient(Vec3 *fb_idx, float u, float v) {

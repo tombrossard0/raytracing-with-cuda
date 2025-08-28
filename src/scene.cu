@@ -142,6 +142,45 @@ void scene4(Entity *entities, int &nEntities) {
     entities[0].size = 0.01;
 }
 
+void scene5(Entity *entities, int &nEntities, Camera *cam) {
+    nEntities = 11;
+    srand((unsigned)time(0));
+    // 2.5
+    int k = 0;
+    for (float i = -3.5f; i <= 3.5f; i += 3.5f) {
+        for (float j = -3.5f; j <= 3.5f; j += 3.5f) {
+            // if (i == 0 && j == 0) {
+            //     entities[k] = Entity(cam->center + Vec3(0, -15.f, 0), 9.3, 1);
+            //     entities[k].material.emissionColour = 1;
+            //     entities[k++].material.emissionStrength = 3.f;
+            //     continue;
+            // }
+
+            Vec3 randomColor(randf(), randf(), randf());
+
+            if (abs(i) == abs(j)) {
+                entities[k++] =
+                    Entity(EntityType::SPHERE, cam->center + Vec3(i / 1.4f, 0, j / 1.4f), 1.f, randomColor);
+                continue;
+            }
+            entities[k++] = Entity(EntityType::SPHERE, cam->center + Vec3(i, 0, j), 1.f, randomColor);
+        }
+    }
+
+    entities[9] = Entity(EntityType::SPHERE, cam->center + Vec3(0, 26.f, 0), 25.f, 1);
+    entities[9].material.smoothness = 1;
+
+    std::vector<Triangle> hostTriangles;
+    loadFBX("models/Knight.fbx", hostTriangles);
+
+    Triangle *triangles;
+    cudaMallocManaged(&triangles, hostTriangles.size() * sizeof(Triangle));
+    memcpy(triangles, hostTriangles.data(), hostTriangles.size() * sizeof(Triangle));
+
+    entities[10] = Entity(EntityType::MESH, hostTriangles.size(), triangles);
+    entities[10].size = 0.01;
+}
+
 Scene::Scene(int w, int h) : width(w), height(h), fb(nullptr), entities(nullptr), nEntities(0), texture(0) {
     makeCamera();
 
@@ -150,9 +189,7 @@ Scene::Scene(int w, int h) : width(w), height(h), fb(nullptr), entities(nullptr)
 
     cudaMallocManaged(&entities, MAX_ENTITIES * sizeof(Entity));
 
-    scene2(entities, nEntities, cam);
-    // scene3(entities, nEntities, cam);
-    // scene4(entities, nEntities);
+    scene5(entities, nEntities, cam);
 }
 
 Scene::~Scene() {
@@ -225,9 +262,13 @@ void Scene::renderGUI(GLuint &tex) {
             ImGui::ColorEdit3(("Emission color##" + std::to_string(i)).c_str(),
                               &entities[i].material.emissionColour.x);
             ImGui::DragFloat(("Emission strength##" + std::to_string(i)).c_str(),
-                             &entities[i].material.emissionStrength, 0.0f, 0.1f, 100.0f);
+                             &entities[i].material.emissionStrength, 0.0f, 0.01f, 100.0f);
             ImGui::DragFloat(("Emission smoothness##" + std::to_string(i)).c_str(),
                              &entities[i].material.smoothness, 0.0f, 0.01f, 1.0f);
+            ImGui::ColorEdit3(("Specular color##" + std::to_string(i)).c_str(),
+                              &entities[i].material.specularColour.x);
+            ImGui::DragFloat(("Specular probability##" + std::to_string(i)).c_str(),
+                             &entities[i].material.specularProbability, 0.0f, 0.01f, 1.0f);
 
             if (ImGui::Button(("Remove##" + std::to_string(i)).c_str())) {
                 for (int j = i; j < nEntities - 1; j++) entities[j] = entities[j + 1];

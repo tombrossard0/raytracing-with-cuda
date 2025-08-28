@@ -14,8 +14,13 @@ struct RayTracingMaterial {
     Vec3 emissionColour;
     float emissionStrength;
     float smoothness;
+    Vec3 specularColour;
+    float specularProbability;
 
-    HD RayTracingMaterial(Vec3 _colour) : colour(_colour) {}
+    HD RayTracingMaterial(Vec3 _colour) : colour(_colour) {
+        specularColour = 1;
+        specularProbability = 1;
+    }
 };
 
 struct HitInfo {
