@@ -15,6 +15,42 @@ struct Triangle {
     Vec3 v0, v1, v2;
 };
 
+struct Quat {
+    float w, x, y, z;
+
+    HD Quat(float w_ = 1, float x_ = 0, float y_ = 0, float z_ = 0) : w(w_), x(x_), y(y_), z(z_) {}
+
+    // quaternion multiplication
+    HD Quat operator*(const Quat &b) const {
+        return Quat(w * b.w - x * b.x - y * b.y - z * b.z, w * b.x + x * b.w + y * b.z - z * b.y,
+                    w * b.y - x * b.z + y * b.w + z * b.x, w * b.z + x * b.y - y * b.x + z * b.w);
+    }
+
+    HD Quat conjugate() const { return Quat(w, -x, -y, -z); }
+};
+
+inline HD Vec3 rotate(const Vec3 &v, const Quat &q) {
+    Quat p(0, v.x, v.y, v.z);
+    Quat res = q * p * q.conjugate();
+    return Vec3(res.x, res.y, res.z);
+}
+
+inline HD Quat fromEuler(const Vec3 &deg) {
+    // convert to radians
+    Vec3 rad = deg * (M_PI / 180.0f);
+
+    float cx = cosf(rad.x * 0.5f), sx = sinf(rad.x * 0.5f);
+    float cy = cosf(rad.y * 0.5f), sy = sinf(rad.y * 0.5f);
+    float cz = cosf(rad.z * 0.5f), sz = sinf(rad.z * 0.5f);
+
+    Quat q;
+    q.w = cx * cy * cz + sx * sy * sz;
+    q.x = sx * cy * cz - cx * sy * sz;
+    q.y = cx * sy * cz + sx * cy * sz;
+    q.z = cx * cy * sz - sx * sy * cz;
+    return q;
+}
+
 /**
  * @brief Simple entity class for raytracing.
  */
@@ -22,14 +58,14 @@ class Entity {
   public:
     EntityType type;
     Vec3 center;
-
-    // Sphere
     Vec3 size;
     RayTracingMaterial material;
 
-    // Triangle
+    // Mesh only
     int numTriangles;
     Triangle *triangles;
+
+    Vec3 rotationEuler;
 
     HD Entity(EntityType t, Vec3 c, Vec3 r) : type(t), center(c), size(r), material(1), numTriangles(0) {}
     HD Entity(EntityType t, Vec3 c, Vec3 r, Vec3 m)
@@ -59,21 +95,25 @@ class Entity {
         return hitInfo;
     }
 
-    HD HitInfo intersectTriangle(const Ray &ray, Triangle triangle) const {
+    HD HitInfo intersectTriangle(const Ray &ray, const Triangle &triangle) const {
         HitInfo hit{};
-
         const float EPS = 1e-6f;
-        Vec3 v0v1 = (triangle.v1 - triangle.v0) * size;
-        Vec3 v0v2 = (triangle.v2 - triangle.v0) * size;
+
+        // Transform vertices by entity scale + rotation + translation
+        Vec3 v0 = rotate(triangle.v0 * size, fromEuler(rotationEuler)) + center;
+        Vec3 v1 = rotate(triangle.v1 * size, fromEuler(rotationEuler)) + center;
+        Vec3 v2 = rotate(triangle.v2 * size, fromEuler(rotationEuler)) + center;
+
+        Vec3 v0v1 = v1 - v0;
+        Vec3 v0v2 = v2 - v0;
         Vec3 pvec = ray.dir.cross(v0v2);
         float det = v0v1.dot(pvec);
 
-        // if (fabs(det) < EPS) return hit; // parallel
-        if (det < EPS) return hit; // cull backfaces: only if facing the ray
+        if (det < EPS) return hit; // backface culling
 
         float invDet = 1.0f / det;
 
-        Vec3 tvec = ray.origin - (triangle.v0 + center) * size;
+        Vec3 tvec = ray.origin - v0;
         float u = tvec.dot(pvec) * invDet;
         if (u < 0 || u > 1) return hit;
 

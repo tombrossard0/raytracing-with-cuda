@@ -187,7 +187,7 @@ Scene::Scene(int w, int h) : width(w), height(h), fb(nullptr), entities(nullptr)
 
     cudaMallocManaged(&entities, MAX_ENTITIES * sizeof(Entity));
 
-    scene5(entities, nEntities, cam);
+    // scene5(entities, nEntities, cam);
 }
 
 Scene::~Scene() {
@@ -308,17 +308,19 @@ void Scene::renderGUI(GLuint &tex) {
             ImGui::DragFloat3(("Position##" + std::to_string(i)).c_str(), &entities[i].center.x, 0.01f);
             ImGui::DragFloat3(("Size##" + std::to_string(i)).c_str(), &entities[i].size.x, 0.01f, 0.1f,
                               50.0f);
+            ImGui::DragFloat3(("Rotation##" + std::to_string(i)).c_str(), &entities[i].rotationEuler.x, 0.1f,
+                              -360.0f, 360.0f);
             ImGui::ColorEdit3(("Color##" + std::to_string(i)).c_str(), &entities[i].material.colour.x);
             ImGui::ColorEdit3(("Emission color##" + std::to_string(i)).c_str(),
                               &entities[i].material.emissionColour.x);
             ImGui::DragFloat(("Emission strength##" + std::to_string(i)).c_str(),
-                             &entities[i].material.emissionStrength, 0.0f, 0.01f, 100.0f);
+                             &entities[i].material.emissionStrength, 0.01f, 0.0f, 100.0f);
             ImGui::DragFloat(("Emission smoothness##" + std::to_string(i)).c_str(),
-                             &entities[i].material.smoothness, 0.0f, 0.01f, 1.0f);
+                             &entities[i].material.smoothness, 0.01f, 0.0f, 1.0f);
             ImGui::ColorEdit3(("Specular color##" + std::to_string(i)).c_str(),
                               &entities[i].material.specularColour.x);
             ImGui::DragFloat(("Specular probability##" + std::to_string(i)).c_str(),
-                             &entities[i].material.specularProbability, 0.0f, 0.01f, 1.0f);
+                             &entities[i].material.specularProbability, 0.01f, 0.0f, 1.0f);
 
             if (ImGui::Button(("Remove##" + std::to_string(i)).c_str())) {
                 for (int j = i; j < nEntities - 1; j++) entities[j] = entities[j + 1];
