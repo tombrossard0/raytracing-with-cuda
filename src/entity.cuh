@@ -24,37 +24,54 @@ class Entity {
     Vec3 center;
 
     // Sphere
-    float size;
+    Vec3 size;
     RayTracingMaterial material;
 
     // Triangle
     int numTriangles;
     Triangle *triangles;
 
-    HD Entity(EntityType t, Vec3 c, float r) : type(t), center(c), size(r), material(1), numTriangles(0) {}
-    HD Entity(EntityType t, Vec3 c, float r, Vec3 m)
+    HD Entity(EntityType t, Vec3 c, Vec3 r) : type(t), center(c), size(r), material(1), numTriangles(0) {}
+    HD Entity(EntityType t, Vec3 c, Vec3 r, Vec3 m)
         : type(t), center(c), size(r), material(m), numTriangles(0) {}
 
-    HD Entity(EntityType t, int numTriangles, Triangle *triangles)
-        : type(t), center(), size(), material(1), numTriangles(numTriangles), triangles(triangles) {}
-    HD Entity(EntityType t, int numTriangles, Triangle *triangles, Vec3 m)
-        : type(t), center(), size(), material(m), numTriangles(numTriangles), triangles(triangles) {}
+    HD Entity(EntityType t, int numTriangles, Triangle *triangles, Vec3 size)
+        : type(t), center(), size(size), material(1), numTriangles(numTriangles), triangles(triangles) {}
+    HD Entity(EntityType t, int numTriangles, Triangle *triangles, Vec3 m, Vec3 size)
+        : type(t), center(), size(size), material(m), numTriangles(numTriangles), triangles(triangles) {}
 
     HD HitInfo intersectSphere(const Ray &ray) const {
         HitInfo hitInfo;
 
-        Vec3 oc = ray.origin - center;
-        float a = ray.dir.dot(ray.dir);
-        float b = 2.0f * oc.dot(ray.dir);
-        float c = oc.dot(oc) - size * size;
+        // Transform ray into scaled space
+        Vec3 invScale = Vec3(1.0f / size.x, 1.0f / size.y, 1.0f / size.z);
+        Vec3 ro = (ray.origin - center) * invScale; // scaled ray origin
+        Vec3 rd = ray.dir * invScale;               // scaled ray dir
+        rd = rd.normalize();
+
+        // Sphere intersection in unit sphere space
+        float a = rd.dot(rd);
+        float b = 2.0f * ro.dot(rd);
+        float c = ro.dot(ro) - 1.0f; // radius = 1
         float discriminant = b * b - 4 * a * c;
         if (discriminant < 0) return hitInfo;
 
-        hitInfo.dst = (-b - sqrtf(discriminant)) / (2.0f * a);
-        hitInfo.didHit = hitInfo.dst > 0;
+        float t = (-b - sqrtf(discriminant)) / (2.0f * a);
+        if (t <= 0) return hitInfo;
+
+        Vec3 localHit = ro + rd * t; // hit point in scaled space
+
+        hitInfo.didHit = true;
+        hitInfo.dst = (localHit - ro).length(); // proper distance in scaled space
         hitInfo.material = material;
+
+        // Transform back to world space
         hitInfo.hitPoint = ray.origin + ray.dir * hitInfo.dst;
-        hitInfo.normal = (hitInfo.hitPoint - center).normalize();
+
+        // Normal: transform & renormalize
+        Vec3 n = localHit.normalize();
+        n = (n * invScale).normalize(); // correct for scaling
+        hitInfo.normal = n;
 
         return hitInfo;
     }

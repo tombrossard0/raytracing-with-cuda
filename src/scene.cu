@@ -101,7 +101,7 @@ void scene3(Entity *entities, int &nEntities, Camera *cam) {
     triangles[10] = Triangle{center + Vec3(-s, -s, -s), center + Vec3(+s, -s, -s), center + Vec3(+s, -s, +s)};
     triangles[11] = Triangle{center + Vec3(-s, -s, -s), center + Vec3(+s, -s, +s), center + Vec3(-s, -s, +s)};
 
-    entities[0] = Entity(EntityType::MESH, 12, triangles); // 1 is material
+    entities[0] = Entity(EntityType::MESH, 12, triangles, 1);
 }
 
 void loadFBX(const std::string &path, std::vector<Triangle> &outTris) {
@@ -138,8 +138,7 @@ void scene4(Entity *entities, int &nEntities) {
     cudaMallocManaged(&triangles, hostTriangles.size() * sizeof(Triangle));
     memcpy(triangles, hostTriangles.data(), hostTriangles.size() * sizeof(Triangle));
 
-    entities[0] = Entity(EntityType::MESH, hostTriangles.size(), triangles);
-    entities[0].size = 0.01;
+    entities[0] = Entity(EntityType::MESH, hostTriangles.size(), triangles, 0.01);
 }
 
 void scene5(Entity *entities, int &nEntities, Camera *cam) {
@@ -177,8 +176,7 @@ void scene5(Entity *entities, int &nEntities, Camera *cam) {
     cudaMallocManaged(&triangles, hostTriangles.size() * sizeof(Triangle));
     memcpy(triangles, hostTriangles.data(), hostTriangles.size() * sizeof(Triangle));
 
-    entities[10] = Entity(EntityType::MESH, hostTriangles.size(), triangles);
-    entities[10].size = 0.01;
+    entities[10] = Entity(EntityType::MESH, hostTriangles.size(), triangles, 0.01);
 }
 
 Scene::Scene(int w, int h) : width(w), height(h), fb(nullptr), entities(nullptr), nEntities(0), texture(0) {
@@ -248,16 +246,68 @@ void Scene::renderGUI(GLuint &tex) {
     ImGui::DragInt("Number of ray per pixel", &cam->numberOfRayPerPixel, 1, 0, 1000);
     ImGui::End();
 
-    ImGui::Begin("Spheres");
-    if (ImGui::Button("Add Entity")) {
-        if (nEntities < MAX_ENTITIES) { entities[nEntities++] = Entity(EntityType::SPHERE, Vec3(), 1); }
+    ImGui::Begin("Entities");
+
+    if (ImGui::BeginMenu("Add Entity")) {
+        if (ImGui::MenuItem("Sphere")) {
+            if (nEntities < MAX_ENTITIES) { entities[nEntities++] = Entity(EntityType::SPHERE, Vec3(), 1); }
+        }
+        if (ImGui::MenuItem("Cube")) {
+            if (nEntities < MAX_ENTITIES) {
+                Triangle *triangles;
+                cudaMallocManaged(&triangles, 1 * sizeof(Triangle));
+
+                float s = 1.0f; // half-size of the cube
+                Vec3 center = cam->center;
+
+                // Front face (+Z)
+                triangles[0] =
+                    Triangle{center + Vec3(-s, -s, +s), center + Vec3(+s, -s, +s), center + Vec3(+s, +s, +s)};
+                triangles[1] =
+                    Triangle{center + Vec3(-s, -s, +s), center + Vec3(+s, +s, +s), center + Vec3(-s, +s, +s)};
+
+                // Back face (-Z)
+                triangles[2] =
+                    Triangle{center + Vec3(+s, -s, -s), center + Vec3(-s, -s, -s), center + Vec3(-s, +s, -s)};
+                triangles[3] =
+                    Triangle{center + Vec3(+s, -s, -s), center + Vec3(-s, +s, -s), center + Vec3(+s, +s, -s)};
+
+                // Left face (-X)
+                triangles[4] =
+                    Triangle{center + Vec3(-s, -s, -s), center + Vec3(-s, -s, +s), center + Vec3(-s, +s, +s)};
+                triangles[5] =
+                    Triangle{center + Vec3(-s, -s, -s), center + Vec3(-s, +s, +s), center + Vec3(-s, +s, -s)};
+
+                // Right face (+X)
+                triangles[6] =
+                    Triangle{center + Vec3(+s, -s, +s), center + Vec3(+s, -s, -s), center + Vec3(+s, +s, -s)};
+                triangles[7] =
+                    Triangle{center + Vec3(+s, -s, +s), center + Vec3(+s, +s, -s), center + Vec3(+s, +s, +s)};
+
+                // Top face (+Y)
+                triangles[8] =
+                    Triangle{center + Vec3(-s, +s, +s), center + Vec3(+s, +s, +s), center + Vec3(+s, +s, -s)};
+                triangles[9] =
+                    Triangle{center + Vec3(-s, +s, +s), center + Vec3(+s, +s, -s), center + Vec3(-s, +s, -s)};
+
+                // Bottom face (-Y)
+                triangles[10] =
+                    Triangle{center + Vec3(-s, -s, -s), center + Vec3(+s, -s, -s), center + Vec3(+s, -s, +s)};
+                triangles[11] =
+                    Triangle{center + Vec3(-s, -s, -s), center + Vec3(+s, -s, +s), center + Vec3(-s, -s, +s)};
+
+                entities[nEntities++] = Entity(EntityType::MESH, 12, triangles, 1);
+            }
+        }
+        ImGui::EndMenu();
     }
 
     for (int i = 0; i < nEntities; i++) {
         std::string nodeLabel = "Entity " + std::to_string(i);
         if (ImGui::CollapsingHeader(nodeLabel.c_str())) {
             ImGui::DragFloat3(("Position##" + std::to_string(i)).c_str(), &entities[i].center.x, 0.01f);
-            ImGui::DragFloat(("Size##" + std::to_string(i)).c_str(), &entities[i].size, 0.01f, 0.1f, 50.0f);
+            ImGui::DragFloat3(("Size##" + std::to_string(i)).c_str(), &entities[i].size.x, 0.01f, 0.1f,
+                              50.0f);
             ImGui::ColorEdit3(("Color##" + std::to_string(i)).c_str(), &entities[i].material.colour.x);
             ImGui::ColorEdit3(("Emission color##" + std::to_string(i)).c_str(),
                               &entities[i].material.emissionColour.x);
