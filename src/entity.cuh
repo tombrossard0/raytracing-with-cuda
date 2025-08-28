@@ -43,35 +43,18 @@ class Entity {
     HD HitInfo intersectSphere(const Ray &ray) const {
         HitInfo hitInfo;
 
-        // Transform ray into scaled space
-        Vec3 invScale = Vec3(1.0f / size.x, 1.0f / size.y, 1.0f / size.z);
-        Vec3 ro = (ray.origin - center) * invScale; // scaled ray origin
-        Vec3 rd = ray.dir * invScale;               // scaled ray dir
-        rd = rd.normalize();
-
-        // Sphere intersection in unit sphere space
-        float a = rd.dot(rd);
-        float b = 2.0f * ro.dot(rd);
-        float c = ro.dot(ro) - 1.0f; // radius = 1
+        Vec3 oc = ray.origin - center;
+        float a = ray.dir.dot(ray.dir);
+        float b = 2.0f * oc.dot(ray.dir);
+        float c = oc.dot(oc) - size.x * size.x;
         float discriminant = b * b - 4 * a * c;
         if (discriminant < 0) return hitInfo;
 
-        float t = (-b - sqrtf(discriminant)) / (2.0f * a);
-        if (t <= 0) return hitInfo;
-
-        Vec3 localHit = ro + rd * t; // hit point in scaled space
-
-        hitInfo.didHit = true;
-        hitInfo.dst = (localHit - ro).length(); // proper distance in scaled space
+        hitInfo.dst = (-b - sqrtf(discriminant)) / (2.0f * a);
+        hitInfo.didHit = hitInfo.dst > 0;
         hitInfo.material = material;
-
-        // Transform back to world space
         hitInfo.hitPoint = ray.origin + ray.dir * hitInfo.dst;
-
-        // Normal: transform & renormalize
-        Vec3 n = localHit.normalize();
-        n = (n * invScale).normalize(); // correct for scaling
-        hitInfo.normal = n;
+        hitInfo.normal = (hitInfo.hitPoint - center).normalize();
 
         return hitInfo;
     }
